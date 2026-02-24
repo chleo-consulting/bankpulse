@@ -1,0 +1,122 @@
+erDiagram
+
+    USERS {
+        UUID id PK
+        VARCHAR email
+        TEXT password_hash
+        VARCHAR first_name
+        VARCHAR last_name
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    ORGANIZATIONS {
+        UUID id PK
+        VARCHAR name
+        UUID owner_id FK
+        TIMESTAMP created_at
+    }
+
+    BANK_CONNECTIONS {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR provider_name
+        VARCHAR external_connection_id
+        VARCHAR status
+        TIMESTAMP created_at
+    }
+
+    BANK_ACCOUNTS {
+        UUID id PK
+        UUID connection_id FK
+        VARCHAR account_name
+        VARCHAR iban
+        VARCHAR currency
+        VARCHAR account_type
+        NUMERIC balance
+        TIMESTAMP last_synced_at
+        TIMESTAMP created_at
+    }
+
+    MERCHANTS {
+        UUID id PK
+        VARCHAR name
+        VARCHAR normalized_name
+        TIMESTAMP created_at
+    }
+
+    CATEGORIES {
+        UUID id PK
+        VARCHAR name
+        UUID parent_id FK
+        VARCHAR icon
+        TIMESTAMP created_at
+    }
+
+    TRANSACTIONS {
+        UUID id PK
+        UUID account_id FK
+        UUID merchant_id FK
+        VARCHAR external_transaction_id
+        NUMERIC amount
+        VARCHAR currency
+        DATE transaction_date
+        DATE booking_date
+        TEXT description
+        UUID category_id FK
+        BOOLEAN is_pending
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    TAGS {
+        UUID id PK
+        VARCHAR name
+    }
+
+    TRANSACTION_TAGS {
+        UUID transaction_id FK
+        UUID tag_id FK
+    }
+
+    BUDGETS {
+        UUID id PK
+        UUID user_id FK
+        UUID category_id FK
+        VARCHAR period_type
+        NUMERIC amount_limit
+        TIMESTAMP created_at
+    }
+
+    RECURRING_RULES {
+        UUID id PK
+        UUID merchant_id FK
+        NUMERIC expected_amount
+        VARCHAR frequency
+        DATE last_detected
+    }
+
+    EXCHANGE_RATES {
+        UUID id PK
+        VARCHAR base_currency
+        VARCHAR target_currency
+        NUMERIC rate
+        DATE rate_date
+    }
+
+    USERS ||--o{ BANK_CONNECTIONS : owns
+    USERS ||--o{ BUDGETS : sets
+    USERS ||--o{ ORGANIZATIONS : owns
+
+    BANK_CONNECTIONS ||--o{ BANK_ACCOUNTS : provides
+    BANK_ACCOUNTS ||--o{ TRANSACTIONS : contains
+
+    MERCHANTS ||--o{ TRANSACTIONS : involved_in
+    MERCHANTS ||--o{ RECURRING_RULES : defines
+
+    CATEGORIES ||--o{ TRANSACTIONS : classifies
+    CATEGORIES ||--o{ BUDGETS : controls
+    CATEGORIES ||--o{ CATEGORIES : parent_child
+
+    TRANSACTIONS ||--o{ TRANSACTION_TAGS : tagged
+    TAGS ||--o{ TRANSACTION_TAGS : labels

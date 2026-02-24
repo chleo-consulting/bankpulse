@@ -1,0 +1,28 @@
+flowchart TD
+
+    %% Core User Flow
+    U[User] -->|owns| O[Organization]
+    U -->|has| BA[Bank Account]
+    U -->|defines| B[Budget]
+    U -->|generates| AL[Audit Log]
+
+    %% Bank Account & Transactions
+    BA -->|contains| T[Transaction]
+
+    %% Transaction Relations
+    T -->|related to| M[Merchant]
+    T -->|classified as| C[Category]
+    T -->|tagged via| TT[Transaction_Tags]
+    TT -->|references| TG[Tag]
+
+    %% Category Hierarchy
+    C -->|parent of| C2[Category Parent]
+
+    %% Budgets
+    B -->|applies to| C
+
+    %% Recurring Rules
+    M -->|defines| RR[Recurring Rule]
+
+    %% Audit
+    AL -->|tracks entity| E[Entity Transaction/Budget/etc.]

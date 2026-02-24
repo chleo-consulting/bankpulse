@@ -1,0 +1,71 @@
+flowchart TD
+
+%% --- NODES & ENTITIES ---
+U[User]
+ORG[Organization]
+BC[Bank Connection]
+BA[Bank Account]
+T[Transaction]
+M[Merchant]
+C[Category]
+PC[Parent Category]
+TT[Transaction Tag Link]
+TAG[Tag]
+B[Budget]
+RR[Recurring Rule]
+CUR[Currency]
+ER[Exchange Rate]
+
+%% --- RELATIONSHIPS ---
+U -->|owns| ORG
+U -->|creates| BC
+BC -->|syncs| BA
+BA -->|generates| T
+
+T -->|linked to| M
+T -->|categorized as| C
+C -->|parent category| PC
+
+T -->|tagged via| TT
+TT -->|refers to| TAG
+
+U -->|defines| B
+B -->|applies to| C
+T -->|impacts| B
+
+M -->|used in| RR
+RR -->|detects recurring| T
+
+T -->|uses| CUR
+CUR -->|converted via| ER
+
+BC -->|belongs to| U
+BA -->|belongs to| BC
+T -->|belongs to| BA
+B -->|belongs to| U
+
+%% --- STYLING & COLORS ---
+
+%% User & Org (Blue)
+style U fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+style ORG fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+
+%% Banking (Green)
+style BC fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+style BA fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+style T fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+%% Metadata & Enrichment (Orange)
+style M fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+style C fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+style PC fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+style TAG fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+style TT fill:#fff3e0,stroke:#ef6c00,stroke-width:1px,color:#000
+
+%% Budget & Rules (Purple)
+style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+style RR fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+
+%% Currency (Yellow/Gold)
+style CUR fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#000
+style ER fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#000

@@ -1,0 +1,124 @@
+erDiagram
+
+    USERS {
+        UUID id PK
+        VARCHAR email
+        TEXT password_hash
+        VARCHAR first_name
+        VARCHAR last_name
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_at
+    }
+
+    ORGANIZATIONS {
+        UUID id PK
+        VARCHAR name
+        UUID owner_id FK
+        TIMESTAMP created_at
+        TIMESTAMP deleted_at
+    }
+
+    BANK_ACCOUNTS {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR account_name
+        VARCHAR iban
+        VARCHAR account_type
+        NUMERIC balance
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_at
+    }
+
+    MERCHANTS {
+        UUID id PK
+        VARCHAR name
+        VARCHAR normalized_name
+        TIMESTAMP created_at
+        TIMESTAMP deleted_at
+    }
+
+    CATEGORIES {
+        UUID id PK
+        VARCHAR name
+        UUID parent_id FK
+        VARCHAR icon
+        TIMESTAMP created_at
+        TIMESTAMP deleted_at
+    }
+
+    TRANSACTIONS {
+        UUID id PK
+        UUID account_id FK
+        UUID merchant_id FK
+        NUMERIC amount
+        DATE transaction_date
+        DATE booking_date
+        TEXT description
+        UUID category_id FK
+        BOOLEAN is_pending
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    TAGS {
+        UUID id PK
+        VARCHAR name
+        TIMESTAMP created_at
+        TIMESTAMP deleted_at
+    }
+
+    TRANSACTION_TAGS {
+        UUID transaction_id PK, FK
+        UUID tag_id PK, FK
+    }
+
+    BUDGETS {
+        UUID id PK
+        UUID user_id FK
+        UUID category_id FK
+        VARCHAR period_type
+        NUMERIC amount_limit
+        TIMESTAMP created_at
+        TIMESTAMP deleted_at
+    }
+
+    RECURRING_RULES {
+        UUID id PK
+        UUID merchant_id FK
+        NUMERIC expected_amount
+        VARCHAR frequency
+        DATE last_detected
+        TIMESTAMP created_at
+        TIMESTAMP deleted_at
+    }
+
+    AUDIT_LOGS {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR entity_type
+        UUID entity_id
+        VARCHAR action
+        JSONB old_values
+        JSONB new_values
+        VARCHAR ip_address
+        TEXT user_agent
+        TIMESTAMP created_at
+    }
+
+    USERS ||--o{ ORGANIZATIONS : owns
+    USERS ||--o{ BANK_ACCOUNTS : has
+    USERS ||--o{ BUDGETS : defines
+    USERS ||--o{ AUDIT_LOGS : generates
+
+    BANK_ACCOUNTS ||--o{ TRANSACTIONS : contains
+    MERCHANTS ||--o{ TRANSACTIONS : related_to
+    CATEGORIES ||--o{ TRANSACTIONS : classifies
+    CATEGORIES ||--o{ CATEGORIES : parent_of
+
+    TRANSACTIONS ||--o{ TRANSACTION_TAGS : has
+    TAGS ||--o{ TRANSACTION_TAGS : labels
+
+    CATEGORIES ||--o{ BUDGETS : budget_for
+    MERCHANTS ||--o{ RECURRING_RULES : defines

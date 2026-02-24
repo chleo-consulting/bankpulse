@@ -1,0 +1,119 @@
+title Personal Finance Management System
+
+users [icon: user, color: blue] {
+  id UUID pk
+  email VARCHAR(255)
+  password_hash TEXT
+  first_name VARCHAR(100)
+  last_name VARCHAR(100)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+organizations [icon: building, color: purple] {
+  id UUID pk
+  name VARCHAR(255)
+  owner_id UUID fk
+  created_at TIMESTAMP
+}
+
+bank_connections [icon: link, color: green] {
+  id UUID pk
+  user_id UUID fk
+  provider_name VARCHAR(100)
+  external_connection_id VARCHAR(255)
+  status VARCHAR(50)
+  created_at TIMESTAMP
+}
+
+bank_accounts [icon: credit-card, color: green] {
+  id UUID pk
+  connection_id UUID fk
+  account_name VARCHAR(255)
+  iban VARCHAR(50)
+  currency VARCHAR(10)
+  account_type VARCHAR(50)
+  balance NUMERIC(15,2)
+  last_synced_at TIMESTAMP
+  created_at TIMESTAMP
+}
+
+merchants [icon: shopping-bag, color: orange] {
+  id UUID pk
+  name VARCHAR(255)
+  normalized_name VARCHAR(255)
+  created_at TIMESTAMP
+}
+
+categories [icon: folder, color: yellow] {
+  id UUID pk
+  name VARCHAR(100)
+  parent_id UUID fk
+  icon VARCHAR(100)
+  created_at TIMESTAMP
+}
+
+transactions [icon: dollar-sign, color: blue] {
+  id UUID pk
+  account_id UUID fk
+  merchant_id UUID fk
+  external_transaction_id VARCHAR(255)
+  amount NUMERIC(15,2)
+  currency VARCHAR(10)
+  transaction_date DATE
+  booking_date DATE
+  description TEXT
+  category_id UUID fk
+  is_pending BOOLEAN
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+tags [icon: tag, color: gray] {
+  id UUID pk
+  name VARCHAR(100)
+}
+
+transaction_tags [icon: tags, color: gray] {
+  transaction_id UUID pk, fk
+  tag_id UUID pk, fk
+}
+
+budgets [icon: pie-chart, color: red] {
+  id UUID pk
+  user_id UUID fk
+  category_id UUID fk
+  period_type VARCHAR(20)
+  amount_limit NUMERIC(15,2)
+  created_at TIMESTAMP
+}
+
+recurring_rules [icon: repeat, color: orange] {
+  id UUID pk
+  merchant_id UUID fk
+  expected_amount NUMERIC(15,2)
+  frequency VARCHAR(50)
+  last_detected DATE
+}
+
+exchange_rates [icon: refresh-cw, color: purple] {
+  id UUID pk
+  base_currency VARCHAR(10)
+  target_currency VARCHAR(10)
+  rate NUMERIC(15,6)
+  rate_date DATE
+}
+
+
+organizations.owner_id > users.id
+bank_connections.user_id > users.id
+bank_accounts.connection_id > bank_connections.id
+categories.parent_id > categories.id
+transactions.account_id > bank_accounts.id
+transactions.merchant_id > merchants.id
+transactions.category_id > categories.id
+transaction_tags.transaction_id > transactions.id
+transaction_tags.tag_id > tags.id
+budgets.user_id > users.id
+budgets.category_id > categories.id
+recurring_rules.merchant_id > merchants.id

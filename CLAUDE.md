@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backend est en FastAPI + SQLAlchemy 2.0 + PostgreSQL, le frontend (pas encore démarré) sera en Next.js + shadcn/ui + TailwindCSS.
 
-Le projet est en **phase initiale** : seul le modèle de données SQLAlchemy est implémenté (`model/models.py`). Les specification détaillées du produit sont dans @SPEC.md.  Les étapes de développement sont décrites dans `SPEC_MVP.md`.
+**Étape 1 complétée** : infrastructure en place (FastAPI, Alembic, Docker Compose, ruff/black, tests). Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
 ## Commands
 
@@ -16,18 +16,59 @@ Ce projet utilise `uv` comme gestionnaire de packages (Python 3.12).
 # Installer les dépendances
 uv sync
 
-# Lancer l'application (point d'entrée temporaire)
-uv run python main.py
-
-# Lancer l'API FastAPI (quand elle sera implémentée)
+# Lancer l'API FastAPI (dev, hot-reload)
 uv run uvicorn main:app --reload
 
-# Linter / formatter (à configurer - voir Étape 1 du SPEC_MVP)
+# Tests (coverage ≥ 70% requis)
+uv run pytest
+uv run pytest --tb=short -v  # verbose
+
+# Linter / formatter
 uv run ruff check .
-uv run black .
+uv run ruff check --fix .    # auto-fix
+uv run black --check .
+uv run black .               # appliquer le formatage
+
+# Migrations Alembic
+uv run alembic revision --autogenerate -m "description"
+uv run alembic upgrade head
+uv run alembic downgrade -1
+uv run alembic current
+
+# Infrastructure Docker
+docker compose up -d db db_test        # démarrer les 2 BDD
+docker compose up -d db api            # démarrer BDD + API
+docker compose --profile migrate up migrate  # appliquer les migrations via Docker
+docker compose down
+```
+
+### Premier lancement (setup)
+```bash
+cp .env.example .env
+docker compose up -d db db_test
+uv run alembic upgrade head
+uv run uvicorn main:app --reload
 ```
 
 ## Architecture
+
+### Structure des modules
+
+```
+core/config.py      — Settings pydantic-settings (DATABASE_URL, SECRET_KEY, DEBUG, …)
+core/database.py    — engine SQLAlchemy + get_db() générateur (injection FastAPI)
+api/router.py       — APIRouter racine, préfixe /api/v1
+api/v1/health.py    — GET /api/v1/health/db (SELECT 1 pour vérifier la BDD)
+main.py             — App FastAPI + GET /health
+alembic/env.py      — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
+tests/conftest.py   — Fixtures : test_engine (session), db_session (function, rollback), client
+```
+
+**Conventions de code** :
+- Annotations Python 3.10+ : `X | None` et `list[X]` (pas `Optional`, pas `List`)
+- Imports triés par ruff (I001) : stdlib → third-party → local
+- `line-length = 100` (ruff + black)
+- `asyncio_mode = "auto"` pour pytest-asyncio
 
 ### Schéma de données (v2 — référence)
 

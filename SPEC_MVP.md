@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 3 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 4 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -148,7 +148,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 4 — Catégorisation des Transactions
+### Étape 4 — Catégorisation des Transactions ✅ LIVRÉE
+
+> Coverage : 97.34% | Migration : `c7d8e3f1a234_add_category_rules_and_seed` | Endpoints : `GET /categories` · `GET /transactions` · `PATCH /transactions/{id}/category`
 
 **Objectif** : Chaque transaction est automatiquement catégorisée, et l'utilisateur peut corriger la catégorie.
 
@@ -339,7 +341,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 | # | Question | Propriétaire | Étape impactée |
 |---|----------|-------------|----------------|
 | Q1 | ~~Quels formats CSV bancaires prioriser ? (Boursorama, CA, BNP, LCL…)~~ → **Boursorama** livré (`parsers/boursorama.py`) ; CA/BNP via `AbstractCsvParser` en phase suivante | Product | Étape 3 |
-| Q2 | Taxonomie initiale des catégories (nombres, noms, icônes) | Product / UX | Étape 4 |
+| Q2 | ~~Taxonomie initiale des catégories (nombres, noms, icônes)~~ → **8 parents** (Alimentation, Transport, Logement, Loisirs & Culture, Santé, Shopping, Services & Abonnements, Revenus) + **20 enfants** ; pas d'icônes en MVP ; seedées par migration `c7d8e3f1a234`. **7 règles RegExp** par défaut (supermarché, fast food, essence, transports, taxi, streaming, pharmacie) | Product / UX | Étape 4 |
 | Q3 | ~~Où stocker les fichiers CSV uploadés : S3 ou temporaire serveur ?~~ → **Pas de stockage** : parsé en mémoire (`services/import_service.py`), seul le résultat est persisté en base | Engineering | Étape 3 |
 | Q4 | Notifications budget : email ou in-app uniquement en MVP ? | Product | Étape 7 |
 

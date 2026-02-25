@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 2 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 3 en cours) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -101,7 +101,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 3 — Gestion des Comptes Bancaires & Import CSV
+### Étape 3 — Gestion des Comptes Bancaires & Import CSV 🚧 EN COURS
+
+> Coverage : 94% | Endpoints : `POST /import/boursorama` | Migration : `b3e9f1a2c456_add_import_hash_to_transactions`
 
 **Objectif** : L'utilisateur peut déclarer ses comptes et importer ses transactions depuis un export CSV bancaire.
 
@@ -336,9 +338,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 | # | Question | Propriétaire | Étape impactée |
 |---|----------|-------------|----------------|
-| Q1 | Quels formats CSV bancaires prioriser ? (Boursorama, CA, BNP, LCL…) | Product | Étape 3 |
+| Q1 | ~~Quels formats CSV bancaires prioriser ? (Boursorama, CA, BNP, LCL…)~~ → **Boursorama** livré (`parsers/boursorama.py`) ; CA/BNP via `AbstractCsvParser` en phase suivante | Product | Étape 3 |
 | Q2 | Taxonomie initiale des catégories (nombres, noms, icônes) | Product / UX | Étape 4 |
-| Q3 | Où stocker les fichiers CSV uploadés : S3 ou temporaire serveur ? | Engineering | Étape 3 |
+| Q3 | ~~Où stocker les fichiers CSV uploadés : S3 ou temporaire serveur ?~~ → **Pas de stockage** : parsé en mémoire (`services/import_service.py`), seul le résultat est persisté en base | Engineering | Étape 3 |
 | Q4 | Notifications budget : email ou in-app uniquement en MVP ? | Product | Étape 7 |
 
 ---

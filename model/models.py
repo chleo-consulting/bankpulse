@@ -129,6 +129,7 @@ class Transaction(Base):
     booking_date: Mapped[date | None] = mapped_column(Date)
 
     description: Mapped[str | None] = mapped_column(Text)
+    import_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
     is_pending: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

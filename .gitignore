@@ -31,4 +31,4 @@ env.bak/
 venv.bak/
 
 # Local files
-*.local
+*.local.*

@@ -110,6 +110,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 - En tant qu'utilisateur, je veux ajouter un compte bancaire (nom, IBAN, type) pour organiser mes transactions par compte.
 - En tant qu'utilisateur, je veux importer un fichier CSV d'export bancaire pour ne pas saisir mes transactions manuellement.
 - En tant qu'utilisateur, je veux voir la liste de mes transactions après import pour vérifier que l'import s'est bien passé.
+- En tant qu'utilisateur, je veux importer un fichier CSV d'export bancaire au format Boursorama et le convertir selon le modèle de l'application, sans avoir à déclarer mes comptes manuellement au préalable.
 
 #### Requirements P0
 
@@ -117,24 +118,31 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 |-----|-------------|------------------------|
 | R3.1 | `GET/POST/PATCH/DELETE /accounts` — CRUD comptes | Soft delete ; comptes filtrés par user_id |
 | R3.2 | `POST /accounts/{id}/import` — upload CSV | Accepte fichiers CSV jusqu'à 10 Mo |
-| R3.3 | Parser CSV flexible (date, montant, description, IBAN) | Support formats : Boursorama, Crédit Agricole, BNP |
-| R3.4 | Déduplication à l'import | Transaction déjà importée ignorée (hash unique : date + montant + description) |
-| R3.5 | Normalisation marchands | `description` → `merchant.normalized_name` via RegExp |
-| R3.6 | Mise à jour solde du compte après import | `bank_accounts.balance` recalculé |
+| R3.3 | Parser CSV flexible (date, montant, description, IBAN) | Support formats : Boursorama (livré), Crédit Agricole, BNP (Phase suivante). Format Boursorama : parser dédié `parsers/boursorama.py` |
+| R3.4 | Déduplication à l'import | Transaction déjà importée ignorée via `import_hash` (SHA-256 : `dateOp\|accountNum\|amount\|label`) stocké dans `transactions.import_hash` |
+| R3.5 | Normalisation marchands | `supplierFound` → `merchant.normalized_name` via upsert |
+| R3.6 | Mise à jour solde du compte après import | `bank_accounts.balance` = dernière valeur non-vide de `accountbalance` dans le CSV |
+| R3.7 | `POST /api/v1/import/boursorama` — upload CSV global multi-comptes | Accepte multipart/form-data ; détecte N comptes automatiquement ; crée les comptes manquants |
+| R3.8 | Module de transformation `parsers/boursorama.py` | Mappe les 12 colonnes CSV → BankAccount + Transaction + Merchant ; testé unitairement (sans DB) |
+| R3.9 | Déduplication par `import_hash` (colonne `transactions.import_hash`) | SHA-256(dateOp + accountNum + amount + label) ; migration Alembic `b3e9f1a2c456` |
 
 #### Requirements P1
 
-- Rapport d'import : nb lignes traitées, erreurs, doublons ignorés
+- Rapport d'import : nb lignes traitées, erreurs, doublons ignorés *(inclus dans `ImportResult` — livré)*
 - Support format OFX / QIF
 
 #### Schéma de données impliqué
 
-`bank_accounts`, `transactions`, `merchants`
+`bank_accounts`, `transactions`, `merchants`, `audit_logs`
+
+#### Migration
+
+`b3e9f1a2c456_add_import_hash_to_transactions` — ajout de `transactions.import_hash VARCHAR(64) UNIQUE NULL`
 
 #### Questions ouvertes
 
-- [Product] Quels formats CSV bancaires prioriser pour la v1 ?
-- [Engineering] Upload direct S3 ou stockage temporaire serveur ?
+- ~~[Product] Quels formats CSV bancaires prioriser pour la v1 ?~~ → **Boursorama** (format réel analysé, parser livré). Crédit Agricole et BNP en Phase suivante via l'ABC `AbstractCsvParser`.
+- ~~[Engineering] Upload direct S3 ou stockage temporaire serveur ?~~ → **Pas de stockage** : le fichier est parsé en mémoire, seul le résultat est persisté en base.
 
 ---
 

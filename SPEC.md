@@ -52,6 +52,7 @@ intelligents - Expérience moderne et minimaliste
 -   Catégorisation inline
 -   Bulk edit
 -   Export CSV
+-   Import CSV Boursorama (multi-comptes, auto-détection, déduplication via `import_hash`)
 
 ## Différenciation
 
@@ -65,6 +66,7 @@ Backend: FastAPI + SQLAlchemy 2.0 + PostgreSQL\
 Frontend: React + Next.js + Recharts\
 UI: TailwindCSS + shadcn UI\
 Auth: OAuth2 + JWT\
+Import: Parser CSV pluggable (`parsers/`) — Boursorama v1 (livré), Crédit Agricole / BNP à venir\
 Infra: S3 + Docker + CI/CD
 
 ## 2. 👤 Personas

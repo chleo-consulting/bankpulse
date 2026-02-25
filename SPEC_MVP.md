@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 1 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 2 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -67,7 +67,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 2 — Authentification (Auth API)
+### Étape 2 — Authentification (Auth API) ✅ LIVRÉE
+
+> Coverage : 93% | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout`
 
 **Objectif** : Un utilisateur peut s'inscrire, se connecter, et ses requêtes sont sécurisées par JWT.
 
@@ -95,7 +97,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 #### Questions ouvertes
 
-- [Engineering] Stocker les refresh tokens en DB ou Redis ?
+- ~~[Engineering] Stocker les refresh tokens en DB ou Redis ?~~ → **Stateless JWT** (refresh tokens signés, pas de stockage en MVP — révocation à implémenter en Phase 2 si besoin).
 
 ---
 

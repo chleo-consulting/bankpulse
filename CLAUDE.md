@@ -6,7 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backend est en FastAPI + SQLAlchemy 2.0 + PostgreSQL, le frontend (pas encore démarré) sera en Next.js + shadcn/ui + TailwindCSS.
 
-**Étape 1 complétée** : infrastructure en place (FastAPI, Alembic, Docker Compose, ruff/black, tests). Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
+**Étape 1 complétée** : infrastructure en place (FastAPI, Alembic, Docker Compose, ruff/black, tests).
+**Étape 2 complétée** : Auth JWT — register, login, refresh, logout (stateless). Coverage 93%.
+
+Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
 ## Commands
 
@@ -55,10 +58,14 @@ uv run uvicorn main:app --reload
 ### Structure des modules
 
 ```
-core/config.py      — Settings pydantic-settings (DATABASE_URL, SECRET_KEY, DEBUG, …)
+core/config.py      — Settings pydantic-settings (DATABASE_URL, SECRET_KEY, JWT_ALGORITHM, …)
 core/database.py    — engine SQLAlchemy + get_db() générateur (injection FastAPI)
+core/security.py    — hash_password/verify_password (bcrypt direct), create_access/refresh_token, decode_token
+schemas/auth.py     — Schémas Pydantic auth : RegisterRequest, LoginRequest, TokenResponse, UserResponse
 api/router.py       — APIRouter racine, préfixe /api/v1
+api/deps.py         — get_current_user (OAuth2PasswordBearer → decode JWT → User)
 api/v1/health.py    — GET /api/v1/health/db (SELECT 1 pour vérifier la BDD)
+api/v1/auth.py      — POST /auth/register|login|refresh|logout
 main.py             — App FastAPI + GET /health
 alembic/env.py      — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
 tests/conftest.py   — Fixtures : test_engine (session), db_session (function, rollback), client
@@ -104,6 +111,12 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 6. **Transactions (Power User)** — pagination cursor-based, filtres multicritères, bulk-tag, export CSV
 7. **Budget Tracking** — CRUD budgets, progression temps réel, alertes over/near limit
 8. **Frontend Next.js** — assemblage des composants UI
+
+### Décisions architecturales
+
+- **bcrypt direct** (sans passlib) : `passlib` est incompatible avec bcrypt ≥ 4.x. Utiliser `bcrypt` directement.
+- **Refresh tokens stateless** : les refresh tokens sont des JWT signés (pas stockés en DB/Redis pour le MVP). La question ouverte du SPEC_MVP (DB vs Redis) est résolue en faveur du stateless jusqu'à besoin de révocation.
+- **pydantic[email]** : requis pour `EmailStr` — toujours inclure dans les dépendances si on valide des emails.
 
 ### Definition of Done par étape
 

@@ -8,6 +8,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 
 **Étape 1 complétée** : infrastructure en place (FastAPI, Alembic, Docker Compose, ruff/black, tests).
 **Étape 2 complétée** : Auth JWT — register, login, refresh, logout (stateless). Coverage 93%.
+**Étape 3 complétée** : CRUD /accounts + POST /accounts/{id}/import + parser Boursorama. Coverage 96.65%.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
@@ -58,17 +59,24 @@ uv run uvicorn main:app --reload
 ### Structure des modules
 
 ```
-core/config.py      — Settings pydantic-settings (DATABASE_URL, SECRET_KEY, JWT_ALGORITHM, …)
-core/database.py    — engine SQLAlchemy + get_db() générateur (injection FastAPI)
-core/security.py    — hash_password/verify_password (bcrypt direct), create_access/refresh_token, decode_token
-schemas/auth.py     — Schémas Pydantic auth : RegisterRequest, LoginRequest, TokenResponse, UserResponse
-api/router.py       — APIRouter racine, préfixe /api/v1
-api/deps.py         — get_current_user (OAuth2PasswordBearer → decode JWT → User)
-api/v1/health.py    — GET /api/v1/health/db (SELECT 1 pour vérifier la BDD)
-api/v1/auth.py      — POST /auth/register|login|refresh|logout
-main.py             — App FastAPI + GET /health
-alembic/env.py      — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
-tests/conftest.py   — Fixtures : test_engine (session), db_session (function, rollback), client
+core/config.py            — Settings pydantic-settings (DATABASE_URL, SECRET_KEY, JWT_ALGORITHM, …)
+core/database.py          — engine SQLAlchemy + get_db() générateur (injection FastAPI)
+core/security.py          — hash_password/verify_password (bcrypt direct), create_access/refresh_token, decode_token
+schemas/auth.py           — Schémas Pydantic auth : RegisterRequest, LoginRequest, TokenResponse, UserResponse
+schemas/accounts.py       — BankAccountCreate, BankAccountUpdate, BankAccountResponse
+schemas/import_.py        — ImportResult, AccountImportSummary
+api/router.py             — APIRouter racine, préfixe /api/v1
+api/deps.py               — get_current_user (OAuth2PasswordBearer → decode JWT → User)
+api/v1/health.py          — GET /api/v1/health/db (SELECT 1 pour vérifier la BDD)
+api/v1/auth.py            — POST /auth/register|login|refresh|logout
+api/v1/accounts_router.py — GET|POST /accounts, GET|PATCH|DELETE|import /accounts/{id}
+api/v1/import_router.py   — POST /import/boursorama (import global multi-comptes)
+parsers/base.py           — AbstractCsvParser (ABC), ParsedData, ParsedAccount, ParsedTransaction
+parsers/boursorama.py     — BoursoramaCsvParser — encodage auto, 12 colonnes, import_hash SHA-256
+services/import_service.py — ImportService : import_boursorama() + import_to_account()
+main.py                   — App FastAPI + GET /health
+alembic/env.py            — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
+tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client
 ```
 
 **Conventions de code** :

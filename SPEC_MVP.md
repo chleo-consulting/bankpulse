@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 3 en cours) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 3 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -101,9 +101,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 3 — Gestion des Comptes Bancaires & Import CSV 🚧 EN COURS
+### Étape 3 — Gestion des Comptes Bancaires & Import CSV ✅ LIVRÉE
 
-> Coverage : 94% | Endpoints : `POST /import/boursorama` | Migration : `b3e9f1a2c456_add_import_hash_to_transactions`
+> Coverage : 96.65% | Endpoints : `GET|POST /accounts` · `GET|PATCH|DELETE /accounts/{id}` · `POST /accounts/{id}/import` · `POST /import/boursorama` | Migration : `b3e9f1a2c456_add_import_hash_to_transactions`
 
 **Objectif** : L'utilisateur peut déclarer ses comptes et importer ses transactions depuis un export CSV bancaire.
 

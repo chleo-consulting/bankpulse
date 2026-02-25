@@ -9,6 +9,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 1 complétée** : infrastructure en place (FastAPI, Alembic, Docker Compose, ruff/black, tests).
 **Étape 2 complétée** : Auth JWT — register, login, refresh, logout (stateless). Coverage 93%.
 **Étape 3 complétée** : CRUD /accounts + POST /accounts/{id}/import + parser Boursorama. Coverage 96.65%.
+**Étape 4 complétée** : Catégorisation — seed 28 catégories + 7 rules RegExp, CategorizationService, GET /transactions, PATCH /transactions/{id}/category. Coverage 97.34%.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
@@ -71,12 +72,17 @@ api/v1/health.py          — GET /api/v1/health/db (SELECT 1 pour vérifier la 
 api/v1/auth.py            — POST /auth/register|login|refresh|logout
 api/v1/accounts_router.py — GET|POST /accounts, GET|PATCH|DELETE|import /accounts/{id}
 api/v1/import_router.py   — POST /import/boursorama (import global multi-comptes)
+api/v1/categories_router.py — GET /categories (liste hiérarchique parents+enfants)
+api/v1/transactions_router.py — GET /transactions (6 filtres + pagination), PATCH /transactions/{id}/category
 parsers/base.py           — AbstractCsvParser (ABC), ParsedData, ParsedAccount, ParsedTransaction
 parsers/boursorama.py     — BoursoramaCsvParser — encodage auto, 12 colonnes, import_hash SHA-256
-services/import_service.py — ImportService : import_boursorama() + import_to_account()
+services/import_service.py — ImportService : import_boursorama() + import_to_account() + auto-catégorisation
+services/categorization_service.py — CategorizationService : RegExp matching rules par priorité décroissante
+schemas/categories.py     — CategoryResponse, CategoryWithChildrenResponse
+schemas/transactions.py   — TransactionResponse, TransactionCategoryUpdate, TransactionListResponse
 main.py                   — App FastAPI + GET /health
 alembic/env.py            — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
-tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client
+tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client, seed_categories, seed_rules
 ```
 
 **Conventions de code** :
@@ -96,7 +102,8 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 - `bank_accounts` — comptes bancaires EUR d'un utilisateur (soft delete)
 - `transactions` — transactions importées via CSV (**pas de soft delete**)
 - `merchants` — marchands normalisés extraits des descriptions CSV
-- `categories` — hiérarchie 2 niveaux (parent_id auto-référençant)
+- `categories` — hiérarchie 2 niveaux (parent_id auto-référençant) ; seedées par la migration `c7d8e3f1a234`
+- `category_rules` — règles RegExp merchant_pattern → category_id (priorité décroissante) ; seedées par la même migration
 - `tags` + `transaction_tags` — table de jonction M-N
 - `budgets` — budgets par catégorie (`period_type`: monthly/quarterly/yearly)
 - `recurring_rules` — abonnements détectés par merchant (`frequency`: monthly/yearly)
@@ -125,6 +132,8 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 - **bcrypt direct** (sans passlib) : `passlib` est incompatible avec bcrypt ≥ 4.x. Utiliser `bcrypt` directement.
 - **Refresh tokens stateless** : les refresh tokens sont des JWT signés (pas stockés en DB/Redis pour le MVP). La question ouverte du SPEC_MVP (DB vs Redis) est résolue en faveur du stateless jusqu'à besoin de révocation.
 - **pydantic[email]** : requis pour `EmailStr` — toujours inclure dans les dépendances si on valide des emails.
+- **Migrations seed** : utiliser des UUIDs fixes définis comme constantes au niveau module (ex: `CAT_ALIMENTATION = "a1000000-..."`) pour que le downgrade puisse les cibler sans raw SQL. Insérer via `op.bulk_insert()` + `sa.table()`, supprimer via `op.get_bind()` + `sa.delete()`.
+- **Filtres numériques** : toujours `if value is not None:` (jamais `if value:`) pour les filtres `amount_min`, `amount_max` etc. — `0` est un filtre valide mais falsy.
 
 ### Definition of Done par étape
 

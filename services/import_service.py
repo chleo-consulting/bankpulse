@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from model.models import AuditLog, BankAccount, Merchant, Transaction
 from parsers.boursorama import BoursoramaCsvParser
 from schemas.import_ import AccountImportSummary, ImportResult
+from services.categorization_service import CategorizationService
 
 
 class ImportService:
@@ -16,6 +17,7 @@ class ImportService:
         parsed = parser.parse(file_bytes)
 
         summaries: list[AccountImportSummary] = []
+        cat_service = CategorizationService(db=self.db)
 
         for parsed_account in parsed.accounts:
             account = (
@@ -67,6 +69,8 @@ class ImportService:
                         import_hash=txn.import_hash,
                     )
                     self.db.add(new_txn)
+                    if merchant_id:
+                        cat_service.categorize_transaction(new_txn)
                     nb_created += 1
                 except Exception:
                     nb_errors += 1
@@ -127,6 +131,7 @@ class ImportService:
         summaries: list[AccountImportSummary] = []
         total_created, total_skipped, total_errors = 0, 0, 0
         last_balance = None
+        cat_service = CategorizationService(db=self.db)
 
         for parsed_account in accounts_to_process:
             if parsed_account.balance is not None:
@@ -160,6 +165,8 @@ class ImportService:
                         import_hash=txn.import_hash,
                     )
                     self.db.add(new_txn)
+                    if merchant_id:
+                        cat_service.categorize_transaction(new_txn)
                     nb_created += 1
                 except Exception:
                     nb_errors += 1

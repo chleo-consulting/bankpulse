@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     Table,
@@ -107,6 +108,20 @@ class Category(Base):
     parent: Mapped[Optional["Category"]] = relationship(remote_side=[id])
 
 
+class CategoryRule(Base):
+    __tablename__ = "category_rules"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    category_id: Mapped[UUID] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"))
+    merchant_pattern: Mapped[str] = mapped_column(String(255), nullable=False)
+    priority: Mapped[int] = mapped_column(Integer, default=0)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+    category: Mapped["Category"] = relationship()
+
+
 class Transaction(Base):
     __tablename__ = "transactions"
     __table_args__ = (Index("idx_transactions_account_date", "account_id", "transaction_date"),)
@@ -137,6 +152,7 @@ class Transaction(Base):
 
     account: Mapped["BankAccount"] = relationship(back_populates="transactions")
     merchant: Mapped[Optional["Merchant"]] = relationship(back_populates="transactions")
+    category: Mapped[Optional["Category"]] = relationship()
 
 
 class Tag(Base):

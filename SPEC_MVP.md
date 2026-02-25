@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 1 livrée) | **Date** : 24 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 1 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -36,6 +36,8 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 ---
 
 ### Étape 1 — Fondations & Infrastructure ✅ LIVRÉE
+
+> Coverage : 97% | Migration : `8ffc6c2b8a87_initial_schema`
 
 **Objectif** : Avoir un environnement de développement reproductible et une base de données opérationnelle.
 

@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : Draft | **Date** : 24 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 1 livrée) | **Date** : 24 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -35,7 +35,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 1 — Fondations & Infrastructure
+### Étape 1 — Fondations & Infrastructure ✅ LIVRÉE
 
 **Objectif** : Avoir un environnement de développement reproductible et une base de données opérationnelle.
 
@@ -60,8 +60,8 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 #### Questions ouvertes
 
-- [Engineering] Utiliser Alembic ou un outil de migration alternatif ?
-- [Engineering] PostgreSQL 15 ou 16 ?
+- ~~[Engineering] Utiliser Alembic ou un outil de migration alternatif ?~~ → **Alembic** retenu (migration initiale `8ffc6c2b8a87_initial_schema` en place, réversible).
+- ~~[Engineering] PostgreSQL 15 ou 16 ?~~ → **PostgreSQL 16** (image `postgres:16-alpine` dans Docker Compose).
 
 ---
 

@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 6 livrée) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 7 livrée) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -256,7 +256,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 7 — Budget Tracking
+### Étape 7 — Budget Tracking ✅ LIVRÉE
+
+> Coverage : 98.05% | Endpoints : `POST/GET /budgets` · `GET /budgets/progress` · `GET|PATCH|DELETE /budgets/{id}`
 
 **Objectif** : L'utilisateur peut définir des budgets par catégorie et suivre sa progression avec alertes.
 

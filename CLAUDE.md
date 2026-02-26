@@ -12,6 +12,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 4 complétée** : Catégorisation — seed 28 catégories + 7 rules RegExp, CategorizationService, GET /transactions, PATCH /transactions/{id}/category. Coverage 97.34%.
 **Étape 5 complétée** : Dashboard — DashboardService + 4 endpoints agrégation (/dashboard/summary|categories-breakdown|top-merchants|recurring). Coverage 97.88%.
 **Étape 6 complétée** : Transactions Power User — pagination cursor-based, filtres merchant_id+tag_id, GET /transactions/search, POST /bulk-tag, GET /export. Coverage 97.84%.
+**Étape 7 complétée** : Budget Tracking — CRUD /budgets, GET /budgets/progress (alertes over/near_limit), BudgetService, calcul période monthly/quarterly/yearly. Coverage 98.05%.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
@@ -78,7 +79,10 @@ api/v1/categories_router.py — GET /categories (liste hiérarchique parents+enf
 api/v1/tags_router.py     — GET /tags, POST /tags (CRUD tags globaux)
 api/v1/transactions_router.py — GET /transactions (cursor-based, 7 filtres), GET /search, POST /bulk-tag, GET /export, PATCH /{id}/category
 api/v1/dashboard_router.py — GET /dashboard/summary|categories-breakdown|top-merchants|recurring
+api/v1/budgets_router.py  — POST|GET /budgets, GET /budgets/progress, GET|PATCH|DELETE /budgets/{id}
 schemas/tags.py           — TagCreate, TagResponse
+schemas/budgets.py        — BudgetCreate, BudgetUpdate, BudgetResponse, BudgetProgressItem, BudgetsProgress
+services/budget_service.py — BudgetService : create/list/get_by_id/update/delete + get_progress()
 schemas/dashboard.py      — MonthlySummary, DashboardSummary, CategoryBreakdownItem, CategoriesBreakdown, TopMerchantItem, TopMerchants, RecurringSubscription, RecurringSubscriptions
 services/dashboard_service.py — DashboardService : 6 méthodes agrégation (balance, dépenses, comparaison, catégories, marchands, récurrents)
 parsers/base.py           — AbstractCsvParser (ABC), ParsedData, ParsedAccount, ParsedTransaction
@@ -146,6 +150,7 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 - **Pagination cursor-based** : encoder `(transaction_date, id)` en base64 JSON. Condition : `OR(date < cursor_date, (date == cursor_date AND id < cursor_id))`. Récupérer `limit+1` pour détecter `next_cursor` sans COUNT. Schéma de réponse : `CursorTransactionListResponse` avec `next_cursor: str | None`.
 - **Tags globaux (sans user_id)** : le modèle `Tag` n'a pas de `user_id` — les tags sont partagés entre utilisateurs. La contrainte UNIQUE porte sur `name`. Le bulk-tag vérifie que les transactions appartiennent à l'utilisateur courant.
 - **`Transaction.tags` — `lazy="selectin"`** : pour les relations M-N chargées dans une liste d'objets, `lazy="selectin"` émet 1 requête SELECT IN pour tous les objets (évite le N+1). À préférer à `lazy="joined"` pour les M-N.
+- **Routes statiques avant routes dynamiques** : dans un router FastAPI, toujours déclarer les routes à segment fixe (`/progress`, `/export`, `/me`) **avant** les routes à paramètre (`/{id}`). Sinon FastAPI essaie de convertir le segment fixe en UUID → 422. Ex: `GET /budgets/progress` avant `GET /budgets/{budget_id}`.
 
 ### Definition of Done par étape
 

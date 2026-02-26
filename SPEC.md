@@ -67,7 +67,7 @@ Frontend: React + Next.js + Recharts\
 UI: TailwindCSS + shadcn UI\
 Auth: OAuth2 + JWT\
 Import: Parser CSV pluggable (`parsers/`) — Boursorama v1 (livré), Crédit Agricole / BNP à venir\
-Infra: S3 + Docker + CI/CD
+Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
 
 ## 2. 👤 Personas
 

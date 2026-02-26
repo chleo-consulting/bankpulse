@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backend est en FastAPI + SQLAlchemy 2.0 + PostgreSQL, le frontend (pas encore démarré) sera en Next.js + shadcn/ui + TailwindCSS.
+BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backend est en FastAPI + SQLAlchemy 2.0 + PostgreSQL, le frontend (`frontend/`) est en Next.js 16 + shadcn/ui + Tailwind v4.
 
 **Étape 1 complétée** : infrastructure en place (FastAPI, Alembic, Docker Compose, ruff/black, tests).
 **Étape 2 complétée** : Auth JWT — register, login, refresh, logout (stateless). Coverage 93%.
@@ -13,6 +13,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 5 complétée** : Dashboard — DashboardService + 4 endpoints agrégation (/dashboard/summary|categories-breakdown|top-merchants|recurring). Coverage 97.88%.
 **Étape 6 complétée** : Transactions Power User — pagination cursor-based, filtres merchant_id+tag_id, GET /transactions/search, POST /bulk-tag, GET /export. Coverage 97.84%.
 **Étape 7 complétée** : Budget Tracking — CRUD /budgets, GET /budgets/progress (alertes over/near_limit), BudgetService, calcul période monthly/quarterly/yearly. Coverage 98.05%.
+**Étape 8 Phase 1 complétée** : Frontend Next.js 16 — squelette, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`. Le design de l'UI et des layout sont décrites dans `UI_LAYOUT_SPEC.md`
 
@@ -48,6 +49,20 @@ docker compose up -d db db_test        # démarrer les 2 BDD
 docker compose up -d db api            # démarrer BDD + API
 docker compose --profile migrate up migrate  # appliquer les migrations via Docker
 docker compose down
+```
+
+### Frontend (Bun + Next.js)
+```bash
+cd frontend
+
+# Développement
+bun run dev        # http://localhost:3000 (Turbopack)
+
+# Build de vérification
+bun run build      # doit passer sans erreur TypeScript
+
+# Ajouter un composant shadcn
+bun x shadcn@latest add <component>
 ```
 
 ### Premier lancement (setup)
@@ -95,6 +110,36 @@ main.py                   — App FastAPI + GET /health
 alembic/env.py            — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
 tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client, seed_categories, seed_rules
 ```
+
+### Frontend (`frontend/`)
+
+Stack : Next.js 16.1.6, App Router, TypeScript strict, Tailwind v4, shadcn/ui v3 (new-york/neutral), Bun.
+
+```
+frontend/
+├── app/
+│   ├── (dashboard)/dashboard/page.tsx   ← placeholder Phase 1
+│   ├── globals.css                       ← design tokens BankPulse + shadcn vars
+│   ├── layout.tsx                        ← root layout (Inter + JetBrains Mono, lang="fr")
+│   └── page.tsx                          ← redirect /dashboard
+├── components/ui/                        ← composants shadcn (17 installés)
+├── components/layout/                    ← Phase 2
+├── components/shared/                    ← Phase 4+
+├── hooks/                               ← Phase 3+
+├── lib/
+│   ├── utils.ts                         ← cn() (shadcn)
+│   └── format.ts                        ← formatAmount (EUR fr-FR), formatDate (fr-FR)
+├── types/api.ts                         ← Phase 3+
+├── .env.local                           ← NEXT_PUBLIC_API_URL=http://localhost:8000
+└── next.config.ts                       ← proxy rewrites /api/v1/* → FastAPI :8000
+```
+
+**Décisions frontend** :
+- **Proxy CORS** : `next.config.ts` rewrites `/api/v1/:path*` → `NEXT_PUBLIC_API_URL` — pas de config CORS côté backend
+- **Design tokens** : bloc `@theme` dans `globals.css` — couleurs `primary-500/600/700`, `success-500`, `warning-500`, `danger-500`, `sidebar-bg/border`
+- **Fonts** : Inter (`--font-inter`) + JetBrains Mono (`--font-jetbrains-mono`) via `next/font/google`
+- **shadcn v3** : package `radix-ui` combiné + `@import "shadcn/tailwind.css"` dans globals.css
+- **Tailwind v4** : configuration CSS-first via `@theme` — pas de `tailwind.config.ts` pour les couleurs
 
 **Conventions de code** :
 - Annotations Python 3.10+ : `X | None` et `list[X]` (pas `Optional`, pas `List`)

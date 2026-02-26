@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 7 livrée) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 8 en cours) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
 
 ---
 
@@ -285,7 +285,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 8 — Frontend Next.js (Assemblage final)
+### Étape 8 — Frontend Next.js (Assemblage final) 🚧 EN COURS
+
+> Phase 1 livrée : squelette Next.js 16, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 

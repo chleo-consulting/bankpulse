@@ -17,6 +17,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 8 Phase 2 complétée** : Layout commun — Sidebar collapse/expand, TopBar breadcrumbs, DashboardLayout (desktop + mobile Sheet).
 **Étape 8 Phase 3 complétée** : Auth — Login/Register (Zod + react-hook-form), cookies HttpOnly, proxy.ts, hook useAuth, logout TopBar.
 **Étape 8 Phase 4 complétée** : Dashboard — KPI Cards, Donut Chart (Recharts), Top marchands, Abonnements récurrents, Empty states. Server Component + fetch JWT via cookies().
+**Étape 8 Phase 5 complétée** : Mes Comptes — liste AccountCard, solde consolidé, modal Ajouter compte, modal Importer CSV (dropzone + progress + résultat), route handlers API `/api/accounts/*`.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`, et le detail des pages dans `SPEC_UI_PAGES.md`
 
@@ -127,11 +128,16 @@ frontend/
 │   │   └── register/page.tsx             ← page register — Zod + react-hook-form + auto-login
 │   ├── (dashboard)/
 │   │   ├── layout.tsx                    ← DashboardLayout (client, useState sidebarOpen)
-│   │   └── dashboard/page.tsx            ← Server Component async, fetch 4 endpoints, empty state
+│   │   ├── dashboard/page.tsx            ← Server Component async, fetch 4 endpoints, empty state
+│   │   └── accounts/page.tsx             ← Server Component async, fetch comptes, passe à AccountsList
 │   ├── api/auth/
 │   │   ├── login/route.ts               ← proxy → FastAPI + Set-Cookie access_token HttpOnly
 │   │   ├── register/route.ts            ← proxy → FastAPI register + auto-login + Set-Cookie
 │   │   └── logout/route.ts              ← Delete-Cookie + appel backend best-effort
+│   ├── api/accounts/
+│   │   ├── route.ts                     ← GET (liste) + POST (créer) → FastAPI avec Bearer
+│   │   ├── [id]/route.ts                ← PATCH + DELETE → FastAPI avec Bearer
+│   │   └── [id]/import/route.ts         ← POST multipart → FastAPI /accounts/{id}/import
 │   ├── globals.css                       ← design tokens BankPulse + shadcn vars
 │   ├── layout.tsx                        ← root layout (Inter + JetBrains Mono, lang="fr", suppressHydrationWarning)
 │   └── page.tsx                          ← redirect /dashboard
@@ -145,12 +151,16 @@ frontend/
 │   └── empty-state.tsx                   ← EmptyState (icône, texte, bouton Link)
 ├── components/dashboard/
 │   └── category-chart.tsx               ← "use client" — Recharts PieChart donut + légende
+├── components/accounts/
+│   ├── accounts-list.tsx                 ← "use client" — liste + solde consolidé + modals
+│   ├── add-account-modal.tsx             ← Dialog Zod + react-hook-form (nom, IBAN, type, solde)
+│   └── import-csv-modal.tsx             ← dropzone drag&drop + upload multipart + résultat
 ├── hooks/
 │   └── useAuth.ts                        ← useAuth() : logout() + isLoggingOut
 ├── lib/
 │   ├── utils.ts                         ← cn() (shadcn)
 │   └── format.ts                        ← formatAmount (EUR fr-FR), formatDate (fr-FR)
-├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError + types dashboard (DashboardSummary, CategoriesBreakdown, TopMerchants, RecurringSubscriptions)
+├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError + types dashboard + BankAccountResponse, ImportResult, AccountImportSummary
 ├── proxy.ts                             ← protection routes (Next.js 16, anciennement middleware.ts)
 ├── .env.local                           ← NEXT_PUBLIC_API_URL=http://localhost:8000
 └── next.config.ts                       ← proxy rewrites /api/v1/* → FastAPI :8000
@@ -171,7 +181,10 @@ frontend/
 - **`proxy.ts`** (pas `middleware.ts`) : Next.js 16 déprécie `middleware.ts` → utiliser `proxy.ts` avec la fonction exportée `proxy()` (même API, même `config` export).
 - **Dashboard data fetching** : Server Component async + `cookies()` (next/headers) → fetch direct FastAPI avec `Authorization: Bearer`. `cache: "no-store"` obligatoire. `Promise.all` pour les fetches parallèles. Retourner `null` si fetch échoue → afficher empty state. Pas de route handler intermédiaire pour les reads (contrairement à l'auth).
 - **Recharts** : toujours `"use client"`. PieChart donut = `<Pie innerRadius={65} outerRadius={95} strokeWidth={0}>`. Passer les données sérialisées du Server Component comme props — jamais d'ORM, que des objets JSON plats.
-- **Zod v4 + react-hook-form** : ne pas utiliser `.default()` dans les schemas — crée un mismatch TypeScript entre input type (`boolean | undefined`) et output type (`boolean`) incompatible avec `zodResolver`. Mettre les valeurs par défaut uniquement dans `defaultValues` de `useForm`.
+- **Zod v4 + react-hook-form** : ne pas utiliser `.default()` ni `z.coerce.number()` dans les schemas — les deux créent un mismatch input/output type incompatible avec `zodResolver`. Pour les champs numériques, utiliser `z.number()` + `onChange={(e) => onChange(e.target.valueAsNumber || 0)}`. Mettre les valeurs par défaut uniquement dans `defaultValues` de `useForm`.
+- **Sonner Toaster** : importer directement `Toaster` depuis `"sonner"` dans `app/layout.tsx` (pas le wrapper `components/ui/sonner.tsx` qui dépend de `next-themes`). Usage client inchangé : `import { toast } from "sonner"`.
+- **Route handlers avec segments dynamiques** : en Next.js 15/16+, `params` est une Promise → `const { id } = await params`. Typer comme `{ params: Promise<{ id: string }> }`.
+- **Mutations client → route handlers** : les pages avec CRUD utilisent le pattern Server Component (fetch initial) + Client Component (état + mutations). Les mutations appellent `/api/<resource>/[id]` (route handlers Next.js) qui lisent le cookie HttpOnly et proxifient vers FastAPI avec `Authorization: Bearer`.
 
 **Conventions de code** :
 - Annotations Python 3.10+ : `X | None` et `list[X]` (pas `Optional`, pas `List`)

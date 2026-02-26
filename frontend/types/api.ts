@@ -83,3 +83,31 @@ export interface RecurringSubscription {
 export interface RecurringSubscriptions {
   items: RecurringSubscription[]
 }
+
+// Comptes
+export interface BankAccountResponse {
+  id: string
+  user_id: string
+  account_name: string | null
+  iban: string | null
+  account_type: string | null
+  balance: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AccountImportSummary {
+  account_num: string
+  account_label: string
+  nb_created: number
+  nb_skipped: number
+  nb_errors: number
+  balance_updated: boolean
+}
+
+export interface ImportResult {
+  accounts: AccountImportSummary[]
+  total_created: number
+  total_skipped: number
+  total_errors: number
+}

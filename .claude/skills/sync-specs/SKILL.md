@@ -8,7 +8,7 @@ user-invocable: true
 
 ## Objectif
 
-Synchroniser `SPEC.md` et `SPEC_MVP.md` avec l'état réel du codebase :
+Synchroniser `SPEC.md`, `SPEC_MVP.md` et `SPEC_UI_LAYOUT.md` avec l'état réel du codebase :
 - Marquer les étapes livrées (✅)
 - Répondre aux questions ouvertes à partir du code/config
 - Aligner la section architecture avec les dépendances et conventions réelles

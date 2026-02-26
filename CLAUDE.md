@@ -10,6 +10,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 2 complétée** : Auth JWT — register, login, refresh, logout (stateless). Coverage 93%.
 **Étape 3 complétée** : CRUD /accounts + POST /accounts/{id}/import + parser Boursorama. Coverage 96.65%.
 **Étape 4 complétée** : Catégorisation — seed 28 catégories + 7 rules RegExp, CategorizationService, GET /transactions, PATCH /transactions/{id}/category. Coverage 97.34%.
+**Étape 5 complétée** : Dashboard — DashboardService + 4 endpoints agrégation (/dashboard/summary|categories-breakdown|top-merchants|recurring). Coverage 97.88%.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
@@ -74,6 +75,9 @@ api/v1/accounts_router.py — GET|POST /accounts, GET|PATCH|DELETE|import /accou
 api/v1/import_router.py   — POST /import/boursorama (import global multi-comptes)
 api/v1/categories_router.py — GET /categories (liste hiérarchique parents+enfants)
 api/v1/transactions_router.py — GET /transactions (6 filtres + pagination), PATCH /transactions/{id}/category
+api/v1/dashboard_router.py — GET /dashboard/summary|categories-breakdown|top-merchants|recurring
+schemas/dashboard.py      — MonthlySummary, DashboardSummary, CategoryBreakdownItem, CategoriesBreakdown, TopMerchantItem, TopMerchants, RecurringSubscription, RecurringSubscriptions
+services/dashboard_service.py — DashboardService : 6 méthodes agrégation (balance, dépenses, comparaison, catégories, marchands, récurrents)
 parsers/base.py           — AbstractCsvParser (ABC), ParsedData, ParsedAccount, ParsedTransaction
 parsers/boursorama.py     — BoursoramaCsvParser — encodage auto, 12 colonnes, import_hash SHA-256
 services/import_service.py — ImportService : import_boursorama() + import_to_account() + auto-catégorisation
@@ -134,6 +138,8 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 - **pydantic[email]** : requis pour `EmailStr` — toujours inclure dans les dépendances si on valide des emails.
 - **Migrations seed** : utiliser des UUIDs fixes définis comme constantes au niveau module (ex: `CAT_ALIMENTATION = "a1000000-..."`) pour que le downgrade puisse les cibler sans raw SQL. Insérer via `op.bulk_insert()` + `sa.table()`, supprimer via `op.get_bind()` + `sa.delete()`.
 - **Filtres numériques** : toujours `if value is not None:` (jamais `if value:`) pour les filtres `amount_min`, `amount_max` etc. — `0` est un filtre valide mais falsy.
+- **Services d'agrégation retournent des `dict`** : les méthodes de `DashboardService` construisent et retournent des `list[dict]`, pas des instances ORM. Les schémas Pydantic correspondants n'ont donc pas besoin de `model_config = ConfigDict(from_attributes=True)`. Utiliser `from_attributes` uniquement quand un endpoint retourne directement un ORM object comme `response_model`.
+- **`python-dateutil`** : requis pour `relativedelta` (calcul mois précédent, next_expected d'abonnements). `timedelta` ne gère pas les mois correctement (mois de longueurs différentes).
 
 ### Definition of Done par étape
 

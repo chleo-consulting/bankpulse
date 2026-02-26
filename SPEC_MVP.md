@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 4 livrée) | **Date** : 25 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 5 livrée) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -182,7 +182,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 5 — Dashboard Principal
+### Étape 5 — Dashboard Principal ✅ LIVRÉE
+
+> Coverage : 97.88% | Endpoints : `GET /dashboard/summary` · `GET /dashboard/categories-breakdown` · `GET /dashboard/top-merchants` · `GET /dashboard/recurring`
 
 **Objectif** : L'utilisateur dispose d'une vue synthétique de sa situation financière en moins de 30 secondes.
 

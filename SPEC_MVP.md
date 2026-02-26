@@ -289,6 +289,8 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
+Les spécifications UI et layout sont détaillées dans `UI_LAYOUT_SPEC.md`
+
 #### Composants à livrer (par étape API associée)
 
 | Étape API | Composants UI |

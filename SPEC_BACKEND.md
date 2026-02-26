@@ -1,4 +1,4 @@
-# PRD — BankPulse Phase 1 MVP : Étapes de développement
+# PRD — BankPulse Phase 1 MVP : Étapes de développement **backend**
 
 **Statut** : En cours (Étape 8 en cours) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
 
@@ -31,7 +31,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-## 4. Décomposition en étapes de développement
+## 4. Étapes de développement backend (API)
 
 ---
 
@@ -285,51 +285,16 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 8 — Frontend Next.js (Assemblage final) 🚧 EN COURS
-
-> Phase 1 livrée : squelette Next.js 16, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI
-
-**Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
-
-Les spécifications UI et layout sont détaillées dans `UI_LAYOUT_SPEC.md`
-
-#### Composants à livrer (par étape API associée)
-
-| Étape API | Composants UI |
-|-----------|---------------|
-| Étape 2 | Pages Login / Register avec validation form |
-| Étape 3 | Page "Mes comptes" + modal import CSV + progress bar upload |
-| Étape 4 | Page Transactions — inline category selector |
-| Étape 5 | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions |
-| Étape 6 | Page Transactions avancée : filtres, recherche, bulk actions, export |
-| Étape 7 | Page Budgets : Progress bars par catégorie, badges d'alerte |
-
-#### Requirements P0
-
-| Req | Description |
-|-----|-------------|
-| R8.1 | Routing Next.js avec layout authentifié (redirect si non connecté) |
-| R8.2 | Gestion du JWT en cookie HttpOnly |
-| R8.3 | Composants shadcn/ui : Table, Card, Badge, Progress, Dialog |
-| R8.4 | Recharts : DonutChart, BarChart, LineChart (préparation Phase 2) |
-| R8.5 | États vides (empty states) sur chaque vue : "Aucune transaction", "Aucun budget" |
-| R8.6 | Responsive : desktop first, lisible sur tablette |
-
----
-
 ## 5. Ordre de livraison recommandé & dépendances
 
 ```
 Étape 1 (Infra)
     └── Étape 2 (Auth)
-            ├── Étape 3 (Comptes & Import CSV)
-            │       └── Étape 4 (Catégorisation)
-            │               ├── Étape 5 (Dashboard)
-            │               ├── Étape 6 (Transactions)
-            │               └── Étape 7 (Budgets)
-            │
-            └── Étape 8 (Frontend)
-                (peut démarrer en parallèle dès Étape 2)
+            └── Étape 3 (Comptes & Import CSV)
+                    └── Étape 4 (Catégorisation)
+                            ├── Étape 5 (Dashboard)
+                            ├── Étape 6 (Transactions)
+                            └── Étape 7 (Budgets)
 ```
 
 ---
@@ -366,3 +331,5 @@ Chaque étape est considérée **livrée** quand :
 - [ ] Tests d'intégration sur les endpoints principaux
 - [ ] Migration Alembic versionnée et réversible
 - [ ] Déployable en un `docker compose up`
+
+> Les spécifications UI sont dans `SPEC_UI.md`

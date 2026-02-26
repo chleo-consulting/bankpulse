@@ -6,6 +6,36 @@
 
 ---
 
+## 📋 PRD — Étape 8 : Frontend Next.js (Assemblage final)
+
+> Phase 1 livrée : squelette Next.js 16, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI
+
+**Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
+
+### Composants à livrer (par étape API associée)
+
+| Étape API | Composants UI |
+|-----------|---------------|
+| Étape 2 | Pages Login / Register avec validation form |
+| Étape 3 | Page "Mes comptes" + modal import CSV + progress bar upload |
+| Étape 4 | Page Transactions — inline category selector |
+| Étape 5 | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions |
+| Étape 6 | Page Transactions avancée : filtres, recherche, bulk actions, export |
+| Étape 7 | Page Budgets : Progress bars par catégorie, badges d'alerte |
+
+### Requirements P0
+
+| Req | Description |
+|-----|-------------|
+| R8.1 | Routing Next.js avec layout authentifié (redirect si non connecté) |
+| R8.2 | Gestion du JWT en cookie HttpOnly |
+| R8.3 | Composants shadcn/ui : Table, Card, Badge, Progress, Dialog |
+| R8.4 | Recharts : DonutChart, BarChart, LineChart (préparation Phase 2) |
+| R8.5 | États vides (empty states) sur chaque vue : "Aucune transaction", "Aucun budget" |
+| R8.6 | Responsive : desktop first, lisible sur tablette |
+
+---
+
 ## 🎯 Vision & Philosophie
 
 ### Concept Général

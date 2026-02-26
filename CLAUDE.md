@@ -15,7 +15,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 7 complétée** : Budget Tracking — CRUD /budgets, GET /budgets/progress (alertes over/near_limit), BudgetService, calcul période monthly/quarterly/yearly. Coverage 98.05%.
 **Étape 8 Phase 1 complétée** : Frontend Next.js 16 — squelette, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI.
 
-Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`. Le design de l'UI et des layout sont décrites dans `UI_LAYOUT_SPEC.md`
+Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`
 
 ## Commands
 
@@ -171,7 +171,7 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 - Soft delete universel via `deleted_at TIMESTAMP NULL` (sauf `transactions`)
 - `NUMERIC(15, 2)` pour tous les montants financiers
 
-### Roadmap d'implémentation (SPEC_MVP.md)
+### Roadmap d'implémentation (SPEC_BACKEND.md)
 
 8 étapes ordonnées avec dépendances :
 1. **Infra** — Docker Compose, Alembic migrations, ruff/black
@@ -186,7 +186,7 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 ### Décisions architecturales
 
 - **bcrypt direct** (sans passlib) : `passlib` est incompatible avec bcrypt ≥ 4.x. Utiliser `bcrypt` directement.
-- **Refresh tokens stateless** : les refresh tokens sont des JWT signés (pas stockés en DB/Redis pour le MVP). La question ouverte du SPEC_MVP (DB vs Redis) est résolue en faveur du stateless jusqu'à besoin de révocation.
+- **Refresh tokens stateless** : les refresh tokens sont des JWT signés (pas stockés en DB/Redis pour le MVP). La question ouverte du SPEC_BACKEND (DB vs Redis) est résolue en faveur du stateless jusqu'à besoin de révocation.
 - **pydantic[email]** : requis pour `EmailStr` — toujours inclure dans les dépendances si on valide des emails.
 - **Migrations seed** : utiliser des UUIDs fixes définis comme constantes au niveau module (ex: `CAT_ALIMENTATION = "a1000000-..."`) pour que le downgrade puisse les cibler sans raw SQL. Insérer via `op.bulk_insert()` + `sa.table()`, supprimer via `op.get_bind()` + `sa.delete()`. **ATTENTION** : les préfixes mnémotechniques des UUIDs fixes doivent rester dans l'alphabet hexadécimal [0-9a-f] — `r` (pour "rule") est invalide et PostgreSQL rejettera l'insertion. Utiliser `a` (alimentation), `c` (child), `d` (rule/règle), `e`, `f`, etc. Les IDs des category_rules dans ce projet utilisent `d1000000-0000-0000-0000-000000000XXX`.
 - **Filtres numériques** : toujours `if value is not None:` (jamais `if value:`) pour les filtres `amount_min`, `amount_max` etc. — `0` est un filtre valide mais falsy.

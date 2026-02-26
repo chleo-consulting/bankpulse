@@ -1,6 +1,6 @@
 ---
 name: sync-specs
-description: "Met à jour SPEC.md et SPEC_MVP.md en les synchronisant avec le codebase existant : marque les étapes livrées, répond aux questions ouvertes, et aligne l'architecture documentée avec le code réel. À utiliser après chaque étape de développement complétée."
+description: "Met à jour les PRD et specifications SPEC.md, SPEC_BACKEND.md et SPEC_UI.md en les synchronisant avec le codebase existant : marque les étapes livrées, répond aux questions ouvertes, et aligne l'architecture documentée avec le code réel. À utiliser après chaque étape de développement complétée."
 user-invocable: true
 ---
 
@@ -8,7 +8,7 @@ user-invocable: true
 
 ## Objectif
 
-Synchroniser `SPEC.md`, `SPEC_MVP.md` et `SPEC_UI_LAYOUT.md` avec l'état réel du codebase :
+Synchroniser `SPEC.md`, `SPEC_BACKEND.md` et `SPEC_UI.md` avec l'état réel du codebase :
 - Marquer les étapes livrées (✅)
 - Répondre aux questions ouvertes à partir du code/config
 - Aligner la section architecture avec les dépendances et conventions réelles
@@ -20,7 +20,7 @@ Synchroniser `SPEC.md`, `SPEC_MVP.md` et `SPEC_UI_LAYOUT.md` avec l'état réel 
 
 Lire les deux fichiers de spec en entier :
 - `SPEC.md`
-- `SPEC_MVP.md`
+- `SPEC_BACKEND.md`
 
 Identifier :
 - Le statut global (ligne `**Statut**`)
@@ -80,7 +80,7 @@ grep -A5 "\[tool.black\]" pyproject.toml
 
 ### Étape 3 — Déterminer le statut de chaque étape
 
-Pour chaque étape du SPEC_MVP.md, vérifier si elle est **livrée** selon ces critères (Definition of Done) :
+Pour chaque étape du SPEC_BACKEND.md, vérifier si elle est **livrée** selon ces critères (Definition of Done) :
 
 | Étape | Critères de vérification |
 |-------|--------------------------|
@@ -96,7 +96,7 @@ Pour chaque étape du SPEC_MVP.md, vérifier si elle est **livrée** selon ces c
 Une étape est **LIVRÉE** si tous ses critères P0 sont satisfaits.
 Une étape est **EN COURS** si elle a des fichiers/routes partiels.
 
-### Étape 4 — Mettre à jour SPEC_MVP.md
+### Étape 4 — Mettre à jour SPEC_BACKEND.md
 
 Modifications à appliquer dans l'ordre :
 
@@ -154,7 +154,7 @@ Vérifier et corriger la section `## Architecture` pour qu'elle corresponde exac
 ```
 ## Résumé sync-specs
 
-### Modifications SPEC_MVP.md
+### Modifications SPEC_BACKEND.md
 - [✅] Étape 1 marquée LIVRÉE
 - [✅] Question "PostgreSQL 15 ou 16 ?" → PostgreSQL 16 (docker-compose.yml)
 - [✅] Date mise à jour : 2026-02-25
@@ -172,14 +172,14 @@ Vérifier et corriger la section `## Architecture` pour qu'elle corresponde exac
 
 ## Validation obligatoire avant toute écriture
 
-Avant d'appliquer toute modification sur `SPEC.md` ou `SPEC_MVP.md`, **présenter à l'utilisateur le résumé des changements prévus** et attendre sa confirmation explicite.
+Avant d'appliquer toute modification sur `SPEC.md` ou `SPEC_BACKEND.md`, **présenter à l'utilisateur le résumé des changements prévus** et attendre sa confirmation explicite.
 
 Format de la demande de validation :
 
 ```
 ## Modifications prévues — validation requise
 
-### SPEC_MVP.md
+### SPEC_BACKEND.md
 1. Ligne statut : "Draft" → "En cours (Étape 1 livrée)"
 2. Titre Étape 1 : ajout "✅ LIVRÉE"
 3. Question PostgreSQL : barrée + réponse "PostgreSQL 16 (docker-compose.yml)"

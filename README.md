@@ -1,10 +1,11 @@
 # BankPulse Engine
 
-Backend SaaS d'analyse financière personnelle — FastAPI + SQLAlchemy 2.0 + PostgreSQL.
+SaaS d'analyse financière personnelle — FastAPI + SQLAlchemy 2.0 + PostgreSQL + Next.js 16.
 
 ## Stack
 
-Python 3.12 · FastAPI · SQLAlchemy 2.0 · Alembic · PostgreSQL · JWT (stateless) · Docker Compose
+**Backend** : Python 3.12 · FastAPI · SQLAlchemy 2.0 · Alembic · PostgreSQL · JWT (stateless) · Docker Compose
+**Frontend** : Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
 
 ## Setup
 
@@ -26,8 +27,11 @@ uv run ruff check . && uv run black --check .
 
 | Étape | Statut |
 |-------|--------|
-| 1 Infra | ✓ |
-| 2 Auth JWT | ✓ |
-| 3 Import CSV | ✓ |
-| 4 Catégorisation | ✓ |
-| 5 Dashboard | en cours |
+| 1 Infra | ✅ |
+| 2 Auth JWT | ✅ |
+| 3 Import CSV | ✅ |
+| 4 Catégorisation | ✅ |
+| 5 Dashboard | ✅ |
+| 6 Transactions Power User | ✅ |
+| 7 Budget Tracking | ✅ |
+| 8 Frontend Next.js | 🚧 en cours |

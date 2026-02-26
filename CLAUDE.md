@@ -15,8 +15,10 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 7 complétée** : Budget Tracking — CRUD /budgets, GET /budgets/progress (alertes over/near_limit), BudgetService, calcul période monthly/quarterly/yearly. Coverage 98.05%.
 **Étape 8 Phase 1 complétée** : Frontend Next.js 16 — squelette, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI.
 **Étape 8 Phase 2 complétée** : Layout commun — Sidebar collapse/expand, TopBar breadcrumbs, DashboardLayout (desktop + mobile Sheet).
+**Étape 8 Phase 3 complétée** : Auth — Login/Register (Zod + react-hook-form), cookies HttpOnly, proxy.ts, hook useAuth, logout TopBar.
+**Étape 8 Phase 4 complétée** : Dashboard — KPI Cards, Donut Chart (Recharts), Top marchands, Abonnements récurrents, Empty states. Server Component + fetch JWT via cookies().
 
-Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`
+Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`, et le detail des pages dans `SPEC_UI_PAGES.md`
 
 ## Commands
 
@@ -125,7 +127,7 @@ frontend/
 │   │   └── register/page.tsx             ← page register — Zod + react-hook-form + auto-login
 │   ├── (dashboard)/
 │   │   ├── layout.tsx                    ← DashboardLayout (client, useState sidebarOpen)
-│   │   └── dashboard/page.tsx            ← placeholder Phase 4
+│   │   └── dashboard/page.tsx            ← Server Component async, fetch 4 endpoints, empty state
 │   ├── api/auth/
 │   │   ├── login/route.ts               ← proxy → FastAPI + Set-Cookie access_token HttpOnly
 │   │   ├── register/route.ts            ← proxy → FastAPI register + auto-login + Set-Cookie
@@ -138,13 +140,17 @@ frontend/
 │   │   ├── sidebar.tsx                   ← Sidebar (desktop fixed w-16 hover:w-60) + MobileSidebar
 │   │   └── top-bar.tsx                   ← TopBar sticky + Breadcrumbs + UserMenu (logout branché)
 │   └── ui/                              ← composants shadcn (17 installés)
-├── components/shared/                    ← Phase 4+
+├── components/shared/
+│   ├── kpi-card.tsx                      ← KPICard (titre, valeur mono, delta coloré)
+│   └── empty-state.tsx                   ← EmptyState (icône, texte, bouton Link)
+├── components/dashboard/
+│   └── category-chart.tsx               ← "use client" — Recharts PieChart donut + légende
 ├── hooks/
 │   └── useAuth.ts                        ← useAuth() : logout() + isLoggingOut
 ├── lib/
 │   ├── utils.ts                         ← cn() (shadcn)
 │   └── format.ts                        ← formatAmount (EUR fr-FR), formatDate (fr-FR)
-├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError
+├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError + types dashboard (DashboardSummary, CategoriesBreakdown, TopMerchants, RecurringSubscriptions)
 ├── proxy.ts                             ← protection routes (Next.js 16, anciennement middleware.ts)
 ├── .env.local                           ← NEXT_PUBLIC_API_URL=http://localhost:8000
 └── next.config.ts                       ← proxy rewrites /api/v1/* → FastAPI :8000
@@ -163,6 +169,8 @@ frontend/
 - **Cookies HttpOnly pour les tokens** : ne jamais stocker les JWT en `localStorage`. Les route handlers `/app/api/auth/*` font le proxy vers FastAPI et appellent `response.cookies.set("access_token", ..., { httpOnly: true, sameSite: "lax" })`. Le cookie est invisible au JS client.
 - **Auth proxy pattern** : les route handlers Next.js (`/api/auth/login`, `/register`, `/logout`) servent d'intermédiaire entre le browser et FastAPI — ils reçoivent les credentials, appellent FastAPI, et gèrent les cookies. Le browser ne contacte jamais FastAPI directement pour l'auth.
 - **`proxy.ts`** (pas `middleware.ts`) : Next.js 16 déprécie `middleware.ts` → utiliser `proxy.ts` avec la fonction exportée `proxy()` (même API, même `config` export).
+- **Dashboard data fetching** : Server Component async + `cookies()` (next/headers) → fetch direct FastAPI avec `Authorization: Bearer`. `cache: "no-store"` obligatoire. `Promise.all` pour les fetches parallèles. Retourner `null` si fetch échoue → afficher empty state. Pas de route handler intermédiaire pour les reads (contrairement à l'auth).
+- **Recharts** : toujours `"use client"`. PieChart donut = `<Pie innerRadius={65} outerRadius={95} strokeWidth={0}>`. Passer les données sérialisées du Server Component comme props — jamais d'ORM, que des objets JSON plats.
 - **Zod v4 + react-hook-form** : ne pas utiliser `.default()` dans les schemas — crée un mismatch TypeScript entre input type (`boolean | undefined`) et output type (`boolean`) incompatible avec `zodResolver`. Mettre les valeurs par défaut uniquement dans `defaultValues` de `useForm`.
 
 **Conventions de code** :

@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
 **Date** : 26 février 2026  
-**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ livrées)
+**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ livrées)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -11,6 +11,7 @@
 > Phase 1 livrée : squelette Next.js 16, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI
 > Phase 2 livrée : Sidebar (collapsed/expand desktop + Sheet mobile), TopBar (breadcrumbs, user menu), DashboardLayout — `components/layout/sidebar.tsx` · `top-bar.tsx` · `app/(dashboard)/layout.tsx`
 > Phase 3 livrée : Auth — pages Login/Register (Zod + react-hook-form), cookies HttpOnly via route handlers, `proxy.ts` (protection routes), hook `useAuth`, logout TopBar — `app/(auth)/` · `app/api/auth/` · `hooks/useAuth.ts`
+> Phase 4 livrée : Dashboard — KPI Cards (Solde + Dépenses), Donut chart catégories (Recharts), Top marchands, Abonnements récurrents, Empty states — `app/(dashboard)/dashboard/page.tsx` · `components/dashboard/category-chart.tsx` · `components/shared/kpi-card.tsx` · `components/shared/empty-state.tsx`
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
@@ -529,12 +530,12 @@ function DashboardSkeleton() {
 4. ✅ JWT storage (HttpOnly cookies) via route handlers Next.js
 5. ✅ `proxy.ts` auth (redirect si non connecté, redirect `/dashboard` si déjà connecté)
 
-### Phase 4 : Dashboard (Jour 4-6)
-1. KPI Cards (solde, dépenses)
-2. Donut Chart (Recharts)
-3. Top Marchands list
-4. Abonnements récurrents
-5. Empty states
+### Phase 4 : Dashboard (Jour 4-6) ✅ LIVRÉE
+1. ✅ KPI Cards (solde, dépenses)
+2. ✅ Donut Chart (Recharts)
+3. ✅ Top Marchands list
+4. ✅ Abonnements récurrents
+5. ✅ Empty states
 
 ### Phase 5 : Comptes (Jour 6-7)
 1. Liste des comptes (AccountCard)
@@ -580,7 +581,7 @@ function DashboardSkeleton() {
 - [x] Mobile overlay sidebar (Sheet)
 
 ### Pages
-- [ ] Dashboard (KPIs, Donut, Top Marchands, Abonnements)
+- [x] Dashboard (KPIs, Donut, Top Marchands, Abonnements)
 - [ ] Mes Comptes (liste, import CSV, CRUD)
 - [ ] Transactions (filtres, table, bulk actions, export)
 - [ ] Budgets (progression, alertes, CRUD)
@@ -588,14 +589,14 @@ function DashboardSkeleton() {
 - [ ] Paramètres (profil, sécurité)
 
 ### Composants Réutilisables
-- [ ] KPICard
-- [ ] CategoryLegendItem
-- [ ] MerchantRow
-- [ ] SubscriptionRow
+- [x] KPICard
+- [x] CategoryLegendItem (dans CategoryChart)
+- [x] MerchantRow (dans DashboardPage)
+- [x] SubscriptionRow (dans DashboardPage)
 - [ ] AccountCard
 - [ ] TransactionRow
 - [ ] BudgetProgressCard
-- [ ] EmptyState
+- [x] EmptyState
 - [ ] Skeleton loaders
 
 ### Interactions

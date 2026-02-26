@@ -21,9 +21,9 @@
 | Étape API | Composants UI |
 |-----------|---------------|
 | ~~Étape 2~~ ✅ | Pages Login / Register avec validation form — **Phase 3 livrée** |
-| Étape 3 | Page "Mes comptes" + modal import CSV + progress bar upload |
+| ~~Étape 3~~ ✅ | Page "Mes comptes" + modal import CSV + progress bar upload — **Phase 5 livrée** |
 | Étape 4 | Page Transactions — inline category selector |
-| Étape 5 | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions |
+| ~~Étape 5~~ ✅ | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions — **Phase 4 livrée** |
 | Étape 6 | Page Transactions avancée : filtres, recherche, bulk actions, export |
 | Étape 7 | Page Budgets : Progress bars par catégorie, badges d'alerte |
 
@@ -33,10 +33,10 @@
 |-----|-------------|
 | R8.1 ✅ | Routing Next.js avec layout authentifié — `proxy.ts` (redirect `/login` si pas de cookie) |
 | R8.2 ✅ | Gestion du JWT en cookie HttpOnly — route handlers `/api/auth/*` + `response.cookies.set()` |
-| R8.3 | Composants shadcn/ui : Table, Card, Badge, Progress, Dialog |
-| R8.4 | Recharts : DonutChart, BarChart, LineChart (préparation Phase 2) |
-| R8.5 | États vides (empty states) sur chaque vue : "Aucune transaction", "Aucun budget" |
-| R8.6 | Responsive : desktop first, lisible sur tablette |
+| R8.3 ✅ | Composants shadcn/ui utilisés : Card ✅, Badge ✅, Progress ✅, Dialog ✅, Select ✅, DropdownMenu ✅ · Table installé (utilisé phases 6-7) |
+| R8.4 🔶 | Recharts : DonutChart ✅ (PieChart donut, Phase 4) · BarChart / LineChart prévus phases 6-7 |
+| R8.5 🔶 | Empty states : Dashboard ✅, Mes Comptes ✅ · Transactions / Budgets à implémenter |
+| R8.6 🔶 | Responsive grids (1 col mobile → 2 col desktop) : Dashboard ✅, Mes Comptes ✅ · global en cours |
 
 ---
 
@@ -570,10 +570,10 @@ function DashboardSkeleton() {
 ## 🎯 Checklist Finale
 
 ### Design System
-- [ ] Palette de couleurs configurée
-- [ ] Typographie (Inter + JetBrains Mono)
-- [ ] Spacing scale cohérent
-- [ ] Icons (Lucide React)
+- [x] Palette de couleurs configurée (bloc `@theme` dans `globals.css` — primary/success/warning/danger)
+- [x] Typographie (Inter + JetBrains Mono via `next/font/google`)
+- [x] Spacing scale cohérent (Tailwind v4 default scale)
+- [x] Icons (Lucide React installé, utilisé dans sidebar/top-bar/composants)
 
 ### Layout & Navigation
 - [x] Sidebar collapsed (64px) avec hover expand
@@ -604,9 +604,9 @@ function DashboardSkeleton() {
 - [ ] Hover states (sidebar, buttons, links)
 - [ ] Loading states (skeletons)
 - [ ] Transitions fluides
-- [ ] Modals (Dialog)
-- [ ] Dropdowns (DropdownMenu)
-- [ ] Toasts (success, error)
+- [x] Modals (Dialog) — `AddAccountModal`, `ImportCSVModal`
+- [x] Dropdowns (DropdownMenu) — `AccountCard`, `UserMenu` (TopBar)
+- [x] Toasts (success, error) — sonner `<Toaster>` dans `app/layout.tsx`
 
 ### Performance
 - [ ] Suspense boundaries

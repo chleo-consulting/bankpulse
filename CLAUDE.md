@@ -119,23 +119,33 @@ Stack : Next.js 16.1.6, App Router, TypeScript strict, Tailwind v4, shadcn/ui v3
 ```
 frontend/
 ├── app/
+│   ├── (auth)/
+│   │   ├── layout.tsx                    ← layout centré sans Sidebar (fond gray-50)
+│   │   ├── login/page.tsx                ← page login — Zod + react-hook-form
+│   │   └── register/page.tsx             ← page register — Zod + react-hook-form + auto-login
 │   ├── (dashboard)/
 │   │   ├── layout.tsx                    ← DashboardLayout (client, useState sidebarOpen)
 │   │   └── dashboard/page.tsx            ← placeholder Phase 4
+│   ├── api/auth/
+│   │   ├── login/route.ts               ← proxy → FastAPI + Set-Cookie access_token HttpOnly
+│   │   ├── register/route.ts            ← proxy → FastAPI register + auto-login + Set-Cookie
+│   │   └── logout/route.ts              ← Delete-Cookie + appel backend best-effort
 │   ├── globals.css                       ← design tokens BankPulse + shadcn vars
 │   ├── layout.tsx                        ← root layout (Inter + JetBrains Mono, lang="fr", suppressHydrationWarning)
 │   └── page.tsx                          ← redirect /dashboard
 ├── components/
 │   ├── layout/
 │   │   ├── sidebar.tsx                   ← Sidebar (desktop fixed w-16 hover:w-60) + MobileSidebar
-│   │   └── top-bar.tsx                   ← TopBar sticky + Breadcrumbs + UserMenu
+│   │   └── top-bar.tsx                   ← TopBar sticky + Breadcrumbs + UserMenu (logout branché)
 │   └── ui/                              ← composants shadcn (17 installés)
 ├── components/shared/                    ← Phase 4+
-├── hooks/                               ← Phase 3+
+├── hooks/
+│   └── useAuth.ts                        ← useAuth() : logout() + isLoggingOut
 ├── lib/
 │   ├── utils.ts                         ← cn() (shadcn)
 │   └── format.ts                        ← formatAmount (EUR fr-FR), formatDate (fr-FR)
-├── types/api.ts                         ← Phase 3+
+├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError
+├── proxy.ts                             ← protection routes (Next.js 16, anciennement middleware.ts)
 ├── .env.local                           ← NEXT_PUBLIC_API_URL=http://localhost:8000
 └── next.config.ts                       ← proxy rewrites /api/v1/* → FastAPI :8000
 ```
@@ -150,6 +160,10 @@ frontend/
 - **Couleurs sidebar** : utiliser les valeurs hex directes `bg-[#1f2937]` / `border-[#374151]` plutôt que les classes générées (`bg-sidebar-bg`) — plus fiable avec les blocs `@theme` imbriqués en Tailwind v4.
 - **`suppressHydrationWarning`** : à mettre sur `<body>` dans `app/layout.tsx` pour éviter les fausses erreurs d'hydratation causées par des extensions browser (ex: `data-gptw=""`).
 - **`SheetContent` sans titre visible** : Radix UI requiert un `DialogTitle` accessible → `<VisuallyHidden.Root><SheetTitle>Navigation</SheetTitle></VisuallyHidden.Root>` dans le SheetContent. `VisuallyHidden` de `radix-ui` est un namespace → utiliser `VisuallyHidden.Root`.
+- **Cookies HttpOnly pour les tokens** : ne jamais stocker les JWT en `localStorage`. Les route handlers `/app/api/auth/*` font le proxy vers FastAPI et appellent `response.cookies.set("access_token", ..., { httpOnly: true, sameSite: "lax" })`. Le cookie est invisible au JS client.
+- **Auth proxy pattern** : les route handlers Next.js (`/api/auth/login`, `/register`, `/logout`) servent d'intermédiaire entre le browser et FastAPI — ils reçoivent les credentials, appellent FastAPI, et gèrent les cookies. Le browser ne contacte jamais FastAPI directement pour l'auth.
+- **`proxy.ts`** (pas `middleware.ts`) : Next.js 16 déprécie `middleware.ts` → utiliser `proxy.ts` avec la fonction exportée `proxy()` (même API, même `config` export).
+- **Zod v4 + react-hook-form** : ne pas utiliser `.default()` dans les schemas — crée un mismatch TypeScript entre input type (`boolean | undefined`) et output type (`boolean`) incompatible avec `zodResolver`. Mettre les valeurs par défaut uniquement dans `defaultValues` de `useForm`.
 
 **Conventions de code** :
 - Annotations Python 3.10+ : `X | None` et `list[X]` (pas `Optional`, pas `List`)

@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/hooks/useAuth"
 
 const routeLabels: Record<string, string> = {
   dashboard: "Dashboard",
@@ -45,6 +46,8 @@ function Breadcrumbs() {
 }
 
 function UserMenu() {
+  const { logout, isLoggingOut } = useAuth()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -62,9 +65,9 @@ function UserMenu() {
           Profil
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem variant="destructive" onClick={logout} disabled={isLoggingOut}>
           <LogOutIcon className="size-4" />
-          Déconnexion
+          {isLoggingOut ? "Déconnexion…" : "Déconnexion"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

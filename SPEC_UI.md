@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
 **Date** : 26 février 2026  
-**Statut** : Validé pour implémentation Étape 8  
+**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ livrées)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -9,6 +9,7 @@
 ## 📋 PRD — Étape 8 : Frontend Next.js (Assemblage final)
 
 > Phase 1 livrée : squelette Next.js 16, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI
+> Phase 2 livrée : Sidebar (collapsed/expand desktop + Sheet mobile), TopBar (breadcrumbs, user menu), DashboardLayout — `components/layout/sidebar.tsx` · `top-bar.tsx` · `app/(dashboard)/layout.tsx`
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
@@ -1649,11 +1650,11 @@ function DashboardSkeleton() {
 4. ✅ Setup fonts (Inter + JetBrains Mono)
 5. ✅ Créer palette de couleurs (tailwind.config.ts)
 
-### Phase 2 : Layout & Navigation (Jour 2-3)
-1. Composant `Sidebar` (collapsed + hover expand)
-2. Composant `TopBar` (breadcrumbs, search, user menu)
-3. Layout principal (`app/layout.tsx`)
-4. Navigation items + active states
+### Phase 2 : Layout & Navigation (Jour 2-3) ✅ LIVRÉE
+1. ✅ Composant `Sidebar` (collapsed + hover expand)
+2. ✅ Composant `TopBar` (breadcrumbs, search, user menu)
+3. ✅ Layout principal (`app/(dashboard)/layout.tsx`)
+4. ✅ Navigation items + active states
 
 ### Phase 3 : Auth (Jour 3-4)
 1. Pages Login + Register
@@ -1707,10 +1708,10 @@ function DashboardSkeleton() {
 - [ ] Icons (Lucide React)
 
 ### Layout & Navigation
-- [ ] Sidebar collapsed (64px) avec hover expand
-- [ ] TopBar (breadcrumbs, search, user menu)
-- [ ] Layout principal responsive
-- [ ] Mobile overlay sidebar (Sheet)
+- [x] Sidebar collapsed (64px) avec hover expand
+- [x] TopBar (breadcrumbs, search, user menu)
+- [x] Layout principal responsive
+- [x] Mobile overlay sidebar (Sheet)
 
 ### Pages
 - [ ] Dashboard (KPIs, Donut, Top Marchands, Abonnements)

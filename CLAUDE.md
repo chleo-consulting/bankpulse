@@ -14,6 +14,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 6 complétée** : Transactions Power User — pagination cursor-based, filtres merchant_id+tag_id, GET /transactions/search, POST /bulk-tag, GET /export. Coverage 97.84%.
 **Étape 7 complétée** : Budget Tracking — CRUD /budgets, GET /budgets/progress (alertes over/near_limit), BudgetService, calcul période monthly/quarterly/yearly. Coverage 98.05%.
 **Étape 8 Phase 1 complétée** : Frontend Next.js 16 — squelette, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI.
+**Étape 8 Phase 2 complétée** : Layout commun — Sidebar collapse/expand, TopBar breadcrumbs, DashboardLayout (desktop + mobile Sheet).
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`
 
@@ -118,12 +119,17 @@ Stack : Next.js 16.1.6, App Router, TypeScript strict, Tailwind v4, shadcn/ui v3
 ```
 frontend/
 ├── app/
-│   ├── (dashboard)/dashboard/page.tsx   ← placeholder Phase 1
+│   ├── (dashboard)/
+│   │   ├── layout.tsx                    ← DashboardLayout (client, useState sidebarOpen)
+│   │   └── dashboard/page.tsx            ← placeholder Phase 4
 │   ├── globals.css                       ← design tokens BankPulse + shadcn vars
-│   ├── layout.tsx                        ← root layout (Inter + JetBrains Mono, lang="fr")
+│   ├── layout.tsx                        ← root layout (Inter + JetBrains Mono, lang="fr", suppressHydrationWarning)
 │   └── page.tsx                          ← redirect /dashboard
-├── components/ui/                        ← composants shadcn (17 installés)
-├── components/layout/                    ← Phase 2
+├── components/
+│   ├── layout/
+│   │   ├── sidebar.tsx                   ← Sidebar (desktop fixed w-16 hover:w-60) + MobileSidebar
+│   │   └── top-bar.tsx                   ← TopBar sticky + Breadcrumbs + UserMenu
+│   └── ui/                              ← composants shadcn (17 installés)
 ├── components/shared/                    ← Phase 4+
 ├── hooks/                               ← Phase 3+
 ├── lib/
@@ -140,6 +146,10 @@ frontend/
 - **Fonts** : Inter (`--font-inter`) + JetBrains Mono (`--font-jetbrains-mono`) via `next/font/google`
 - **shadcn v3** : package `radix-ui` combiné + `@import "shadcn/tailwind.css"` dans globals.css
 - **Tailwind v4** : configuration CSS-first via `@theme` — pas de `tailwind.config.ts` pour les couleurs
+- **Sidebar collapse** : pattern `showLabel: boolean` — `false` → `opacity-0 group-hover:opacity-100`, `true` → toujours visible. Deux exports : `Sidebar` (desktop, `fixed w-16 hover:w-60 group`) + `MobileSidebar` (mobile dans Sheet, `w-60` expanded).
+- **Couleurs sidebar** : utiliser les valeurs hex directes `bg-[#1f2937]` / `border-[#374151]` plutôt que les classes générées (`bg-sidebar-bg`) — plus fiable avec les blocs `@theme` imbriqués en Tailwind v4.
+- **`suppressHydrationWarning`** : à mettre sur `<body>` dans `app/layout.tsx` pour éviter les fausses erreurs d'hydratation causées par des extensions browser (ex: `data-gptw=""`).
+- **`SheetContent` sans titre visible** : Radix UI requiert un `DialogTitle` accessible → `<VisuallyHidden.Root><SheetTitle>Navigation</SheetTitle></VisuallyHidden.Root>` dans le SheetContent. `VisuallyHidden` de `radix-ui` est un namespace → utiliser `VisuallyHidden.Root`.
 
 **Conventions de code** :
 - Annotations Python 3.10+ : `X | None` et `list[X]` (pas `Optional`, pas `List`)

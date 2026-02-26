@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement
 
-**Statut** : En cours (Étape 5 livrée) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
+**Statut** : En cours (Étape 6 livrée) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js · shadcn/ui · TailwindCSS
 
 ---
 
@@ -223,7 +223,9 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ---
 
-### Étape 6 — Vue Transactions (Power User)
+### Étape 6 — Vue Transactions (Power User) ✅ LIVRÉE
+
+> Coverage : 97.84% | Endpoints : `GET /transactions` (cursor-based) · `GET /transactions/search` · `POST /transactions/bulk-tag` · `GET /transactions/export` · `GET /tags` · `POST /tags`
 
 **Objectif** : L'utilisateur Power User peut explorer, filtrer, tagger et exporter ses transactions.
 

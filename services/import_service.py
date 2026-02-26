@@ -53,6 +53,7 @@ class ImportService:
                     nb_skipped += 1
                     continue
 
+                savepoint = self.db.begin_nested()
                 try:
                     merchant_id = None
                     if txn.merchant:
@@ -71,8 +72,10 @@ class ImportService:
                     self.db.add(new_txn)
                     if merchant_id:
                         cat_service.categorize_transaction(new_txn)
+                    savepoint.commit()
                     nb_created += 1
                 except Exception:
+                    savepoint.rollback()
                     nb_errors += 1
 
             balance_updated = False
@@ -149,6 +152,7 @@ class ImportService:
                     nb_skipped += 1
                     continue
 
+                savepoint = self.db.begin_nested()
                 try:
                     merchant_id = None
                     if txn.merchant:
@@ -167,8 +171,10 @@ class ImportService:
                     self.db.add(new_txn)
                     if merchant_id:
                         cat_service.categorize_transaction(new_txn)
+                    savepoint.commit()
                     nb_created += 1
                 except Exception:
+                    savepoint.rollback()
                     nb_errors += 1
 
             total_created += nb_created

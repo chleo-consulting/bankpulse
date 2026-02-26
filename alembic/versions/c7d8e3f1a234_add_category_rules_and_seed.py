@@ -304,7 +304,7 @@ def upgrade() -> None:
         rules_tbl,
         [
             {
-                "id": "r1000000-0000-0000-0000-000000000001",
+                "id": "d1000000-0000-0000-0000-000000000001",
                 "category_id": CAT_SUPERMARCHE,
                 "merchant_pattern": (
                     r"(?i)CARREFOUR|LECLERC|LIDL|ALDI|INTERMARCHE|SUPER U|MONOPRIX|CASINO"
@@ -313,42 +313,42 @@ def upgrade() -> None:
                 "created_at": SEED_TS,
             },
             {
-                "id": "r1000000-0000-0000-0000-000000000002",
+                "id": "d1000000-0000-0000-0000-000000000002",
                 "category_id": CAT_FAST_FOOD,
                 "merchant_pattern": r"(?i)MCDONALDS|BURGER KING|KFC|SUBWAY|QUICK|DOMINOS",
                 "priority": 10,
                 "created_at": SEED_TS,
             },
             {
-                "id": "r1000000-0000-0000-0000-000000000003",
+                "id": "d1000000-0000-0000-0000-000000000003",
                 "category_id": CAT_ESSENCE,
                 "merchant_pattern": r"(?i)TOTAL|BP|SHELL|ESSO|AVIA",
                 "priority": 10,
                 "created_at": SEED_TS,
             },
             {
-                "id": "r1000000-0000-0000-0000-000000000004",
+                "id": "d1000000-0000-0000-0000-000000000004",
                 "category_id": CAT_TC,
                 "merchant_pattern": r"(?i)SNCF|RATP|TRANSILIEN|OUIGO|TER ",
                 "priority": 10,
                 "created_at": SEED_TS,
             },
             {
-                "id": "r1000000-0000-0000-0000-000000000005",
+                "id": "d1000000-0000-0000-0000-000000000005",
                 "category_id": CAT_TAXI,
                 "merchant_pattern": r"(?i)UBER|BOLT|HEETCH|BLABLACAR",
                 "priority": 9,
                 "created_at": SEED_TS,
             },
             {
-                "id": "r1000000-0000-0000-0000-000000000006",
+                "id": "d1000000-0000-0000-0000-000000000006",
                 "category_id": CAT_STREAMING,
                 "merchant_pattern": r"(?i)NETFLIX|SPOTIFY|DEEZER|CANAL\+|AMAZON PRIME|DISNEY",
                 "priority": 10,
                 "created_at": SEED_TS,
             },
             {
-                "id": "r1000000-0000-0000-0000-000000000007",
+                "id": "d1000000-0000-0000-0000-000000000007",
                 "category_id": CAT_PHARMACIE,
                 "merchant_pattern": r"(?i)PHARMACIE|PHARMA|APOTHEQUE",
                 "priority": 10,

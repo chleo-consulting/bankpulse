@@ -153,6 +153,7 @@ class Transaction(Base):
     account: Mapped["BankAccount"] = relationship(back_populates="transactions")
     merchant: Mapped[Optional["Merchant"]] = relationship(back_populates="transactions")
     category: Mapped[Optional["Category"]] = relationship()
+    tags: Mapped[list["Tag"]] = relationship(secondary="transaction_tags", lazy="selectin")
 
 
 class Tag(Base):

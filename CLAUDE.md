@@ -11,6 +11,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 3 complétée** : CRUD /accounts + POST /accounts/{id}/import + parser Boursorama. Coverage 96.65%.
 **Étape 4 complétée** : Catégorisation — seed 28 catégories + 7 rules RegExp, CategorizationService, GET /transactions, PATCH /transactions/{id}/category. Coverage 97.34%.
 **Étape 5 complétée** : Dashboard — DashboardService + 4 endpoints agrégation (/dashboard/summary|categories-breakdown|top-merchants|recurring). Coverage 97.88%.
+**Étape 6 complétée** : Transactions Power User — pagination cursor-based, filtres merchant_id+tag_id, GET /transactions/search, POST /bulk-tag, GET /export. Coverage 97.84%.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement sont décrites dans `SPEC_MVP.md`.
 
@@ -74,8 +75,10 @@ api/v1/auth.py            — POST /auth/register|login|refresh|logout
 api/v1/accounts_router.py — GET|POST /accounts, GET|PATCH|DELETE|import /accounts/{id}
 api/v1/import_router.py   — POST /import/boursorama (import global multi-comptes)
 api/v1/categories_router.py — GET /categories (liste hiérarchique parents+enfants)
-api/v1/transactions_router.py — GET /transactions (6 filtres + pagination), PATCH /transactions/{id}/category
+api/v1/tags_router.py     — GET /tags, POST /tags (CRUD tags globaux)
+api/v1/transactions_router.py — GET /transactions (cursor-based, 7 filtres), GET /search, POST /bulk-tag, GET /export, PATCH /{id}/category
 api/v1/dashboard_router.py — GET /dashboard/summary|categories-breakdown|top-merchants|recurring
+schemas/tags.py           — TagCreate, TagResponse
 schemas/dashboard.py      — MonthlySummary, DashboardSummary, CategoryBreakdownItem, CategoriesBreakdown, TopMerchantItem, TopMerchants, RecurringSubscription, RecurringSubscriptions
 services/dashboard_service.py — DashboardService : 6 méthodes agrégation (balance, dépenses, comparaison, catégories, marchands, récurrents)
 parsers/base.py           — AbstractCsvParser (ABC), ParsedData, ParsedAccount, ParsedTransaction
@@ -83,7 +86,7 @@ parsers/boursorama.py     — BoursoramaCsvParser — encodage auto, 12 colonnes
 services/import_service.py — ImportService : import_boursorama() + import_to_account() + auto-catégorisation
 services/categorization_service.py — CategorizationService : RegExp matching rules par priorité décroissante
 schemas/categories.py     — CategoryResponse, CategoryWithChildrenResponse
-schemas/transactions.py   — TransactionResponse, TransactionCategoryUpdate, TransactionListResponse
+schemas/transactions.py   — TransactionResponse (avec tags), TransactionCategoryUpdate, CursorTransactionListResponse, BulkTagRequest (TransactionListResponse = alias compat)
 main.py                   — App FastAPI + GET /health
 alembic/env.py            — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
 tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client, seed_categories, seed_rules
@@ -140,6 +143,9 @@ Les modèles SQLAlchemy 2.0 sont dans `model/models.py` et correspondent exactem
 - **Filtres numériques** : toujours `if value is not None:` (jamais `if value:`) pour les filtres `amount_min`, `amount_max` etc. — `0` est un filtre valide mais falsy.
 - **Services d'agrégation retournent des `dict`** : les méthodes de `DashboardService` construisent et retournent des `list[dict]`, pas des instances ORM. Les schémas Pydantic correspondants n'ont donc pas besoin de `model_config = ConfigDict(from_attributes=True)`. Utiliser `from_attributes` uniquement quand un endpoint retourne directement un ORM object comme `response_model`.
 - **`python-dateutil`** : requis pour `relativedelta` (calcul mois précédent, next_expected d'abonnements). `timedelta` ne gère pas les mois correctement (mois de longueurs différentes).
+- **Pagination cursor-based** : encoder `(transaction_date, id)` en base64 JSON. Condition : `OR(date < cursor_date, (date == cursor_date AND id < cursor_id))`. Récupérer `limit+1` pour détecter `next_cursor` sans COUNT. Schéma de réponse : `CursorTransactionListResponse` avec `next_cursor: str | None`.
+- **Tags globaux (sans user_id)** : le modèle `Tag` n'a pas de `user_id` — les tags sont partagés entre utilisateurs. La contrainte UNIQUE porte sur `name`. Le bulk-tag vérifie que les transactions appartiennent à l'utilisateur courant.
+- **`Transaction.tags` — `lazy="selectin"`** : pour les relations M-N chargées dans une liste d'objets, `lazy="selectin"` émet 1 requête SELECT IN pour tous les objets (évite le N+1). À préférer à `lazy="joined"` pour les M-N.
 
 ### Definition of Done par étape
 

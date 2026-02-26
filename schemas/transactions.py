@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from schemas.tags import TagResponse
+
 
 class TransactionResponse(BaseModel):
     id: UUID
@@ -15,6 +17,7 @@ class TransactionResponse(BaseModel):
     booking_date: date | None
     description: str | None
     is_pending: bool
+    tags: list[TagResponse]
     created_at: datetime
     updated_at: datetime
 
@@ -25,8 +28,16 @@ class TransactionCategoryUpdate(BaseModel):
     category_id: UUID | None
 
 
-class TransactionListResponse(BaseModel):
+class CursorTransactionListResponse(BaseModel):
     items: list[TransactionResponse]
-    total: int
-    page: int
+    next_cursor: str | None
     page_size: int
+
+
+class BulkTagRequest(BaseModel):
+    transaction_ids: list[UUID]
+    tag_ids: list[UUID]
+
+
+# Compat — conservé pour éviter de casser les imports existants
+TransactionListResponse = CursorTransactionListResponse

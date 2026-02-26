@@ -2,7 +2,7 @@ import base64
 import csv
 import io
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
@@ -306,7 +306,7 @@ def update_transaction_category(
             )
 
     txn.category_id = body.category_id
-    txn.updated_at = datetime.utcnow()
+    txn.updated_at = datetime.now(timezone.utc)
 
     audit = AuditLog(
         user_id=current_user.id,

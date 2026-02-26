@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
@@ -121,7 +121,7 @@ class BudgetService:
         return budget
 
     def delete(self, budget: Budget) -> None:
-        budget.deleted_at = datetime.utcnow()
+        budget.deleted_at = datetime.now(timezone.utc)
         self.db.commit()
 
     # --- Progression ---

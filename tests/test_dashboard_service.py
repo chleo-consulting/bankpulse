@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -47,7 +47,7 @@ class TestConsolidatedBalance:
         assert result == Decimal("1250.50")
 
     def test_soft_deleted_account_ignored(self, db_session, test_user: User) -> None:
-        deleted = BankAccount(user_id=test_user.id, balance=999.00, deleted_at=datetime.utcnow())
+        deleted = BankAccount(user_id=test_user.id, balance=999.00, deleted_at=datetime.now(timezone.utc))
         db_session.add(deleted)
         db_session.flush()
         svc = DashboardService(db_session)

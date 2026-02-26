@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -97,7 +97,7 @@ def update_account(
     if body.balance is not None:
         account.balance = body.balance
 
-    account.updated_at = datetime.utcnow()
+    account.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(account)
     return account
@@ -111,7 +111,7 @@ def delete_account(
 ) -> None:
     """Soft-delete d'un compte bancaire."""
     account = _get_account_or_404(account_id, current_user, db)
-    account.deleted_at = datetime.utcnow()
+    account.deleted_at = datetime.now(timezone.utc)
     db.commit()
 
 

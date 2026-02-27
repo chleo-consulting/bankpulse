@@ -188,7 +188,8 @@ export function TransactionsList({
   // ─── Filter handlers ───────────────────────────────────────────────────
 
   function applyFilter(key: keyof Filters, value: string) {
-    const newFilters = { ...filters, [key]: value }
+    const normalized = value === "all" ? "" : value
+    const newFilters = { ...filters, [key]: normalized }
     setFilters(newFilters)
     resetAndLoad(newFilters)
   }
@@ -345,12 +346,15 @@ export function TransactionsList({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Compte */}
-            <Select value={filters.accountId} onValueChange={(v) => applyFilter("accountId", v)}>
+            <Select
+              value={filters.accountId || "all"}
+              onValueChange={(v) => applyFilter("accountId", v)}
+            >
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Tous les comptes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les comptes</SelectItem>
+                <SelectItem value="all">Tous les comptes</SelectItem>
                 {accounts.map((acc) => (
                   <SelectItem key={acc.id} value={acc.id}>
                     {acc.account_name ?? "Compte sans nom"}
@@ -361,14 +365,14 @@ export function TransactionsList({
 
             {/* Catégorie */}
             <Select
-              value={filters.categoryId}
+              value={filters.categoryId || "all"}
               onValueChange={(v) => applyFilter("categoryId", v)}
             >
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Toutes catégories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes catégories</SelectItem>
+                <SelectItem value="all">Toutes catégories</SelectItem>
                 {flatCategories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.label}
@@ -378,12 +382,15 @@ export function TransactionsList({
             </Select>
 
             {/* Tag */}
-            <Select value={filters.tagId} onValueChange={(v) => applyFilter("tagId", v)}>
+            <Select
+              value={filters.tagId || "all"}
+              onValueChange={(v) => applyFilter("tagId", v)}
+            >
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Tous les tags" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les tags</SelectItem>
+                <SelectItem value="all">Tous les tags</SelectItem>
                 {tags.map((tag) => (
                   <SelectItem key={tag.id} value={tag.id}>
                     {tag.name}
@@ -635,8 +642,8 @@ function TransactionRow({
 
       <TableCell>
         <Select
-          value={tx.category_id ?? ""}
-          onValueChange={(v) => onCategoryChange(v)}
+          value={tx.category_id ?? "none"}
+          onValueChange={(v) => onCategoryChange(v === "none" ? "" : v)}
         >
           <SelectTrigger className="h-7 text-xs w-36 border-dashed">
             <SelectValue>
@@ -644,7 +651,7 @@ function TransactionRow({
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">— Aucune —</SelectItem>
+            <SelectItem value="none">— Aucune —</SelectItem>
             {flatCategories.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.label}

@@ -111,3 +111,47 @@ export interface ImportResult {
   total_skipped: number
   total_errors: number
 }
+
+// Tags
+export interface TagResponse {
+  id: string
+  name: string
+  created_at: string
+}
+
+// Catégories
+export interface CategoryResponse {
+  id: string
+  name: string
+  parent_id: string | null
+  icon: string | null
+}
+
+export interface CategoryWithChildrenResponse {
+  id: string
+  name: string
+  icon: string | null
+  children: CategoryResponse[]
+}
+
+// Transactions
+export interface TransactionResponse {
+  id: string
+  account_id: string
+  merchant_id: string | null
+  category_id: string | null
+  amount: number
+  transaction_date: string
+  booking_date: string | null
+  description: string | null
+  is_pending: boolean
+  tags: TagResponse[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CursorTransactionListResponse {
+  items: TransactionResponse[]
+  next_cursor: string | null
+  page_size: number
+}

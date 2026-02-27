@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
-**Date** : 26 février 2026  
-**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ livrées)
+**Date** : 27 février 2026
+**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ livrées)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -15,6 +15,7 @@
 > Phase 5 livrée : Mes Comptes — liste AccountCard, solde consolidé, modal Ajouter compte (Zod + react-hook-form), modal Importer CSV (dropzone + progress + résultat), route handlers `/api/accounts/*` — `app/(dashboard)/accounts/page.tsx` · `components/accounts/accounts-list.tsx` · `components/accounts/add-account-modal.tsx` · `components/accounts/import-csv-modal.tsx`
 > Phase 6 livrée : Transactions — filtres 8 critères (compte, catégorie, tag, dates, montants, recherche), table avec checkbox sélection, category select inline, bulk-tag modal, export CSV, pagination cursor prev/next — `app/(dashboard)/transactions/page.tsx` · `components/transactions/transactions-list.tsx` · `app/api/transactions/*`
 > Phase 7 livrée : Budgets — KPI cards résumé, BudgetProgressCard (progress bar + alertes over/near_limit + jours restants), navigation mensuelle (prev/next via URL), modal créer/éditer budget, suppression — `app/(dashboard)/budgets/page.tsx` · `components/budgets/budgets-list.tsx` · `components/budgets/budget-progress-card.tsx` · `components/budgets/budget-modal.tsx` · `app/api/budgets/*`
+> Phase 8 livrée : Polish — 4 loading skeletons (auto-Suspense App Router), page Paramètres (3 onglets) — `app/(dashboard)/*/loading.tsx` · `app/(dashboard)/settings/page.tsx` · `components/settings/settings-tabs.tsx`
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
@@ -560,12 +561,12 @@ function DashboardSkeleton() {
 3. ✅ Modal créer/éditer budget
 4. ✅ Calcul progression temps réel
 
-### Phase 8 : Polish (Jour 10-11)
-1. Responsive (mobile + tablet)
-2. Loading skeletons
-3. Transitions & animations
-4. Empty states partout
-5. Tests end-to-end
+### Phase 8 : Polish (Jour 10-11) ✅ LIVRÉE
+1. ✅ Responsive (mobile + tablet) — grids 1/2/4 col selon breakpoints, mobile Sheet sidebar
+2. ✅ Loading skeletons — `loading.tsx` par page (auto-Suspense App Router)
+3. ✅ Transitions & animations — sidebar `transition-all duration-200`, NavItem `transition-colors`
+4. ✅ Empty states — Dashboard, Mes Comptes, Transactions, Budgets
+5. ✅ Page Paramètres — tabs profil/sécurité/à propos
 
 ---
 
@@ -589,7 +590,7 @@ function DashboardSkeleton() {
 - [x] Transactions (filtres, table, bulk actions, export)
 - [x] Budgets (progression, alertes, CRUD)
 - [x] Login / Register
-- [ ] Paramètres (profil, sécurité)
+- [x] Paramètres (profil, sécurité)
 
 ### Composants Réutilisables
 - [x] KPICard
@@ -600,24 +601,24 @@ function DashboardSkeleton() {
 - [x] TransactionRow
 - [x] BudgetProgressCard
 - [x] EmptyState
-- [ ] Skeleton loaders
+- [x] Skeleton loaders
 
 ### Interactions
-- [ ] Hover states (sidebar, buttons, links)
-- [ ] Loading states (skeletons)
-- [ ] Transitions fluides
+- [x] Hover states (sidebar, buttons, links) — `hover:bg-gray-700`, `hover:text-white`, shadcn variants
+- [x] Loading states (skeletons) — `loading.tsx` auto-Suspense par segment de route
+- [x] Transitions fluides — sidebar `transition-all duration-200 hover:w-60`, NavItem `transition-colors`
 - [x] Modals (Dialog) — `AddAccountModal`, `ImportCSVModal`
 - [x] Dropdowns (DropdownMenu) — `AccountCard`, `UserMenu` (TopBar)
 - [x] Toasts (success, error) — sonner `<Toaster>` dans `app/layout.tsx`
 
 ### Performance
-- [ ] Suspense boundaries
-- [ ] Code splitting
-- [ ] Image optimization
-- [ ] Font optimization
+- [x] Suspense boundaries — via `loading.tsx` (App Router crée un `<Suspense>` automatique par segment)
+- [x] Code splitting — Next.js App Router : route-level splitting automatique par segment
+- [x] Image optimization — N/A (aucune image dans le projet, uniquement SVG inline Lucide)
+- [x] Font optimization — `next/font/google` (Inter + JetBrains Mono) avec preload automatique
 
 ---
 
-**Prêt à implémenter ! 🚀**
+**Frontend MVP complet. Prêt pour beta-test. 🚀**
 
-Ce document servira de référence pour toute l'implémentation de l'Étape 8.
+Toutes les pages et composants de l'Étape 8 sont livrés. Prochaine étape : tests end-to-end, endpoint profil `/users/me` backend.

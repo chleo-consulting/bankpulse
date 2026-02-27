@@ -20,6 +20,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 8 Phase 5 complétée** : Mes Comptes — liste AccountCard, solde consolidé, modal Ajouter compte, modal Importer CSV (dropzone + progress + résultat), route handlers API `/api/accounts/*`.
 **Étape 8 Phase 6 complétée** : Transactions — filtres 8 critères, table checkbox, category inline, bulk-tag, export CSV, pagination cursor prev/next, route handlers `/api/transactions/*`.
 **Étape 8 Phase 7 complétée** : Budgets — KPI cards, BudgetProgressCard (progress bar tricolore, alertes), navigation mensuelle URL, modal create/edit (2 schemas Zod distincts), route handlers `/api/budgets/*`.
+**Étape 8 Phase 8 complétée** : Polish — loading skeletons (4 × `loading.tsx` App Router auto-Suspense), page `/settings` (SettingsTabs 3 onglets : profil/sécurité/à propos, UI only). Frontend MVP complet.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`, et le detail des pages dans `SPEC_UI_PAGES.md`
 
@@ -133,7 +134,8 @@ frontend/
 │   │   ├── dashboard/page.tsx            ← Server Component async, fetch 4 endpoints, empty state
 │   │   ├── accounts/page.tsx             ← Server Component async, fetch comptes, passe à AccountsList
 │   │   ├── transactions/page.tsx         ← Server Component async, fetch txns+cats+accounts+tags
-│   │   └── budgets/page.tsx              ← Server Component async, searchParams month, fetch progress+cats
+│   │   ├── budgets/page.tsx              ← Server Component async, searchParams month, fetch progress+cats
+│   │   └── settings/page.tsx             ← Server Component shell, max-w-2xl, importe SettingsTabs
 │   ├── api/auth/
 │   │   ├── login/route.ts               ← proxy → FastAPI + Set-Cookie access_token HttpOnly
 │   │   ├── register/route.ts            ← proxy → FastAPI register + auto-login + Set-Cookie
@@ -175,6 +177,8 @@ frontend/
 │   ├── budgets-list.tsx                  ← "use client" — navigation mensuelle, KPI cards, liste, empty state
 │   ├── budget-progress-card.tsx          ← progress bar tricolore, alertes, dropdown actions
 │   └── budget-modal.tsx                  ← Dialog create/edit — deux forms Zod distincts (create ≠ edit)
+├── components/settings/
+│   └── settings-tabs.tsx                 ← "use client" — 3 onglets (profil/sécurité/à propos), UI only sans backend
 ├── hooks/
 │   └── useAuth.ts                        ← useAuth() : logout() + isLoggingOut
 ├── lib/
@@ -208,6 +212,8 @@ frontend/
 - **`searchParams` en Next.js 15/16+** : comme `params`, `searchParams` dans `page.tsx` est une Promise → `const { month } = await searchParams`. Typer comme `{ searchParams: Promise<{ month?: string }> }`. Pattern URL-based state : Client Component fait `router.push('/path?param=value')` → Server Component re-render avec nouvelles données.
 - **Progress bar couleur** : `[&>div]:bg-emerald-500` sur le composant root `<Progress>` pour surcharger le `bg-primary` hardcodé sur l'indicateur interne. Tricolore : `[&>div]:bg-emerald-500` (ok) / `[&>div]:bg-amber-500` (near_limit) / `[&>div]:bg-red-500` (over_budget).
 - **`EmptyState` partagé** : le composant `components/shared/empty-state.tsx` n'accepte que `href` pour l'action (bouton `<Link>`). Si l'action doit déclencher une modale (`onClick`), créer un empty state inline directement dans le composant client — ne pas modifier le composant partagé.
+- **`loading.tsx` App Router** : placer un `loading.tsx` dans le même segment qu'une `page.tsx` Server Component → Next.js crée un `<Suspense>` boundary automatique. Skeleton structuré en miroir de la page réelle (même grid, même nombre de cards/rows). Aucun code Suspense manuel nécessaire.
+- **Page Paramètres (`/settings`)** : UI-only sans appel backend (pas d'endpoint `/users/me` dans l'API FastAPI). Onglets : Mon Profil (form disabled + badge "Bientôt disponible"), Sécurité (idem), À propos (static). À connecter quand un endpoint de profil sera ajouté.
 - **Modal create vs edit — deux forms** : quand create et edit ont des schemas Zod différents (ex: category_id requis en create, absent en edit), créer deux instances `useForm` distinctes (toujours initialisées — pas de hook conditionnel). Réinitialiser le form approprié dans un `useEffect` sur `[open, editItem]`.
 
 **Conventions de code** :

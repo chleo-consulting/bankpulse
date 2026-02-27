@@ -62,10 +62,9 @@ intelligents - Expérience moderne et minimaliste
 
 ## Architecture
 
-Backend: FastAPI + SQLAlchemy 2.0 + PostgreSQL\
-Frontend: React + Next.js + Recharts\
-UI: TailwindCSS + shadcn UI\
-Auth: OAuth2 + JWT\
+Backend: FastAPI + SQLAlchemy 2.0 + PostgreSQL (psycopg2-binary, python-jose, bcrypt)\
+Frontend: Next.js 16 + App Router + shadcn/ui v3 + Tailwind v4 + Recharts\
+Auth: JWT (python-jose) + bcrypt — cookies HttpOnly, refresh tokens stateless\
 Import: Parser CSV pluggable (`parsers/`) — Boursorama v1 (livré), Crédit Agricole / BNP à venir\
 Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
 

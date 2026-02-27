@@ -18,9 +18,10 @@ Synchroniser `SPEC.md`, `SPEC_BACKEND.md` et `SPEC_UI.md` avec l'état réel du 
 
 ### Étape 1 — Lire le contexte actuel des specs
 
-Lire les deux fichiers de spec en entier :
+Lire les trois fichiers de spec en entier :
 - `SPEC.md`
 - `SPEC_BACKEND.md`
+- `SPEC_UI.md`
 
 Identifier :
 - Le statut global (ligne `**Statut**`)
@@ -172,7 +173,7 @@ Vérifier et corriger la section `## Architecture` pour qu'elle corresponde exac
 
 ## Validation obligatoire avant toute écriture
 
-Avant d'appliquer toute modification sur `SPEC.md` ou `SPEC_BACKEND.md`, **présenter à l'utilisateur le résumé des changements prévus** et attendre sa confirmation explicite.
+Avant d'appliquer toute modification sur `SPEC.md` ou `SPEC_BACKEND.md` ou `SPEC_UI.md`, **présenter à l'utilisateur le résumé des changements prévus** et attendre sa confirmation explicite.
 
 Format de la demande de validation :
 

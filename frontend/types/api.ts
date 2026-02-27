@@ -181,3 +181,17 @@ export interface BudgetsProgress {
   month: string | null
   items: BudgetProgressItem[]
 }
+
+// Mot de passe oublié
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  token: string
+  new_password: string
+}
+
+export interface MessageResponse {
+  message: string
+}

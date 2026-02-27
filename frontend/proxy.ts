@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const PUBLIC_PATHS = ["/login", "/register"]
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"]
 const IGNORED_PREFIXES = ["/api", "/_next", "/favicon.ico"]
 
 export function proxy(request: NextRequest) {

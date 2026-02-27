@@ -15,5 +15,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24h
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    RESEND_API_KEY: str = ""
+    FRONTEND_URL: str = "http://localhost:3000"
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
+
 
 settings = Settings()

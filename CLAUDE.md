@@ -21,6 +21,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 8 Phase 6 complétée** : Transactions — filtres 8 critères, table checkbox, category inline, bulk-tag, export CSV, pagination cursor prev/next, route handlers `/api/transactions/*`.
 **Étape 8 Phase 7 complétée** : Budgets — KPI cards, BudgetProgressCard (progress bar tricolore, alertes), navigation mensuelle URL, modal create/edit (2 schemas Zod distincts), route handlers `/api/budgets/*`.
 **Étape 8 Phase 8 complétée** : Polish — loading skeletons (4 × `loading.tsx` App Router auto-Suspense), page `/settings` (SettingsTabs 3 onglets : profil/sécurité/à propos, UI only). Frontend MVP complet.
+**Feature Mot de passe oublié complétée** : POST /auth/forgot-password + reset-password (backend), pages `/forgot-password` + `/reset-password` (frontend), service Resend, table `password_reset_tokens`, 13 tests. Coverage 97.80% (199 tests).
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`, et le detail des pages dans `SPEC_UI_PAGES.md`
 
@@ -88,13 +89,13 @@ uv run uvicorn main:app --reload
 core/config.py            — Settings pydantic-settings (DATABASE_URL, SECRET_KEY, JWT_ALGORITHM, …)
 core/database.py          — engine SQLAlchemy + get_db() générateur (injection FastAPI)
 core/security.py          — hash_password/verify_password (bcrypt direct), create_access/refresh_token, decode_token
-schemas/auth.py           — Schémas Pydantic auth : RegisterRequest, LoginRequest, TokenResponse, UserResponse
+schemas/auth.py           — Schémas Pydantic auth : RegisterRequest, LoginRequest, TokenResponse, UserResponse, ForgotPasswordRequest, ResetPasswordRequest, MessageResponse
 schemas/accounts.py       — BankAccountCreate, BankAccountUpdate, BankAccountResponse
 schemas/import_.py        — ImportResult, AccountImportSummary
 api/router.py             — APIRouter racine, préfixe /api/v1
 api/deps.py               — get_current_user (OAuth2PasswordBearer → decode JWT → User)
 api/v1/health.py          — GET /api/v1/health/db (SELECT 1 pour vérifier la BDD)
-api/v1/auth.py            — POST /auth/register|login|refresh|logout
+api/v1/auth.py            — POST /auth/register|login|refresh|logout|forgot-password|reset-password
 api/v1/accounts_router.py — GET|POST /accounts, GET|PATCH|DELETE|import /accounts/{id}
 api/v1/import_router.py   — POST /import/boursorama (import global multi-comptes)
 api/v1/categories_router.py — GET /categories (liste hiérarchique parents+enfants)
@@ -113,8 +114,10 @@ services/import_service.py — ImportService : import_boursorama() + import_to_a
 services/categorization_service.py — CategorizationService : RegExp matching rules par priorité décroissante
 schemas/categories.py     — CategoryResponse, CategoryWithChildrenResponse
 schemas/transactions.py   — TransactionResponse (avec tags), TransactionCategoryUpdate, CursorTransactionListResponse, BulkTagRequest (TransactionListResponse = alias compat)
+services/email_service.py — EmailService.send_password_reset() via SDK Resend (from: contact@contact.chleo-consulting.fr)
 main.py                   — App FastAPI + GET /health
 alembic/env.py            — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
+alembic/versions/11ad90472e66_add_password_reset_tokens.py — table password_reset_tokens
 tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client, seed_categories, seed_rules
 ```
 

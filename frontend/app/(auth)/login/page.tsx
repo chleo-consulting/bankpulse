@@ -90,18 +90,26 @@ export default function LoginPage() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="remember"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="font-normal cursor-pointer">Se souvenir de moi</FormLabel>
-                </FormItem>
-              )}
-            />
+            <div className="flex items-center justify-between">
+              <FormField
+                control={form.control}
+                name="remember"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">Se souvenir de moi</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
 
             {error && (
               <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">

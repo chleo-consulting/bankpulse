@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
 **Date** : 27 février 2026
-**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ livrées)
+**Statut** : MVP livré (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ + feature reset-password ✅)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -10,7 +10,7 @@
 
 > Phase 1 livrée : squelette Next.js 16, design tokens BankPulse, shadcn/ui v3, fonts Inter + JetBrains Mono, proxy rewrites → FastAPI
 > Phase 2 livrée : Sidebar (collapsed/expand desktop + Sheet mobile), TopBar (breadcrumbs, user menu), DashboardLayout — `components/layout/sidebar.tsx` · `top-bar.tsx` · `app/(dashboard)/layout.tsx`
-> Phase 3 livrée : Auth — pages Login/Register (Zod + react-hook-form), cookies HttpOnly via route handlers, `proxy.ts` (protection routes), hook `useAuth`, logout TopBar — `app/(auth)/` · `app/api/auth/` · `hooks/useAuth.ts`
+> Phase 3 livrée : Auth — pages Login/Register (Zod + react-hook-form), cookies HttpOnly via route handlers, `proxy.ts` (protection routes), hook `useAuth`, logout TopBar — `app/(auth)/` · `app/api/auth/` · `hooks/useAuth.ts` · pages Mot de passe oublié + Réinitialisation (`app/(auth)/forgot-password/page.tsx` · `app/(auth)/reset-password/page.tsx`) + route handlers `/api/auth/forgot-password` · `/api/auth/reset-password`
 > Phase 4 livrée : Dashboard — KPI Cards (Solde + Dépenses), Donut chart catégories (Recharts), Top marchands, Abonnements récurrents, Empty states — `app/(dashboard)/dashboard/page.tsx` · `components/dashboard/category-chart.tsx` · `components/shared/kpi-card.tsx` · `components/shared/empty-state.tsx`
 > Phase 5 livrée : Mes Comptes — liste AccountCard, solde consolidé, modal Ajouter compte (Zod + react-hook-form), modal Importer CSV (dropzone + progress + résultat), route handlers `/api/accounts/*` — `app/(dashboard)/accounts/page.tsx` · `components/accounts/accounts-list.tsx` · `components/accounts/add-account-modal.tsx` · `components/accounts/import-csv-modal.tsx`
 > Phase 6 livrée : Transactions — filtres 8 critères (compte, catégorie, tag, dates, montants, recherche), table avec checkbox sélection, category select inline, bulk-tag modal, export CSV, pagination cursor prev/next — `app/(dashboard)/transactions/page.tsx` · `components/transactions/transactions-list.tsx` · `app/api/transactions/*`
@@ -25,7 +25,7 @@
 |-----------|---------------|
 | ~~Étape 2~~ ✅ | Pages Login / Register avec validation form — **Phase 3 livrée** |
 | ~~Étape 3~~ ✅ | Page "Mes comptes" + modal import CSV + progress bar upload — **Phase 5 livrée** |
-| Étape 4 | Page Transactions — inline category selector |
+| ~~Étape 4~~ ✅ | Page Transactions — inline category selector — **Phase 6 livrée** |
 | ~~Étape 5~~ ✅ | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions — **Phase 4 livrée** |
 | ~~Étape 6~~ ✅ | Page Transactions : filtres, recherche, bulk-tag, export CSV — **Phase 6 livrée** |
 | ~~Étape 7~~ ✅ | Page Budgets : Progress bars par catégorie, badges d'alerte — **Phase 7 livrée** |
@@ -37,9 +37,9 @@
 | R8.1 ✅ | Routing Next.js avec layout authentifié — `proxy.ts` (redirect `/login` si pas de cookie) |
 | R8.2 ✅ | Gestion du JWT en cookie HttpOnly — route handlers `/api/auth/*` + `response.cookies.set()` |
 | R8.3 ✅ | Composants shadcn/ui utilisés : Card ✅, Badge ✅, Progress ✅, Dialog ✅, Select ✅, DropdownMenu ✅ · Table installé (utilisé phases 6-7) |
-| R8.4 🔶 | Recharts : DonutChart ✅ (PieChart donut, Phase 4) · BarChart / LineChart prévus phases 6-7 |
-| R8.5 🔶 | Empty states : Dashboard ✅, Mes Comptes ✅ · Transactions / Budgets à implémenter |
-| R8.6 🔶 | Responsive grids (1 col mobile → 2 col desktop) : Dashboard ✅, Mes Comptes ✅ · global en cours |
+| R8.4 ✅ | Recharts : DonutChart ✅ (PieChart donut, Phase 4). BarChart / LineChart → Phase 2 (hors scope MVP) |
+| R8.5 ✅ | Empty states : Dashboard ✅, Mes Comptes ✅, Transactions ✅, Budgets ✅ (Phase 6/7/8) |
+| R8.6 ✅ | Responsive grids (1 col mobile → 2 col desktop) : toutes pages ✅ (Phase 8) |
 
 ---
 
@@ -533,6 +533,7 @@ function DashboardSkeleton() {
 3. ✅ Connexion API `/auth/login` et `/auth/register`
 4. ✅ JWT storage (HttpOnly cookies) via route handlers Next.js
 5. ✅ `proxy.ts` auth (redirect si non connecté, redirect `/dashboard` si déjà connecté)
+6. ✅ Pages Mot de passe oublié + Réinitialisation (Zod + react-hook-form, proxy Resend via route handlers)
 
 ### Phase 4 : Dashboard (Jour 4-6) ✅ LIVRÉE
 1. ✅ KPI Cards (solde, dépenses)
@@ -590,6 +591,8 @@ function DashboardSkeleton() {
 - [x] Transactions (filtres, table, bulk actions, export)
 - [x] Budgets (progression, alertes, CRUD)
 - [x] Login / Register
+- [x] Mot de passe oublié (forgot-password)
+- [x] Réinitialisation de mot de passe (reset-password)
 - [x] Paramètres (profil, sécurité)
 
 ### Composants Réutilisables

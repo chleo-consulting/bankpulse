@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement **backend**
 
-**Statut** : En cours (Étape 8 en cours) | **Date** : 26 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
+**Statut** : MVP Phase 1 livré + feature reset-password | **Date** : 27 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
 
 ---
 
@@ -69,7 +69,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ### Étape 2 — Authentification (Auth API) ✅ LIVRÉE
 
-> Coverage : 93% | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout`
+> Coverage : 97.80% (199 tests) | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout` · `/auth/forgot-password` · `/auth/reset-password` | Migration : `11ad90472e66_add_password_reset_tokens`
 
 **Objectif** : Un utilisateur peut s'inscrire, se connecter, et ses requêtes sont sécurisées par JWT.
 
@@ -78,6 +78,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 - En tant que nouvel utilisateur, je veux créer un compte avec email + mot de passe pour accéder à l'application.
 - En tant qu'utilisateur existant, je veux me connecter et recevoir un token JWT pour ne pas ressaisir mes credentials à chaque requête.
 - En tant qu'utilisateur connecté, je veux que toutes les routes soient protégées pour que mes données restent privées.
+- En tant qu'utilisateur ayant oublié mon mot de passe, je veux recevoir un lien de réinitialisation par email pour retrouver accès à mon compte sans contacter le support.
 
 #### Requirements P0
 
@@ -89,6 +90,14 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 | R2.4 | Mot de passe hashé avec bcrypt | Aucun mot de passe en clair en base |
 | R2.5 | `POST /auth/refresh` — renouvellement token | Nouveau access_token sans re-login |
 | R2.6 | Toutes les actions utilisateur loguées dans `audit_logs` | LOGIN enregistré avec ip_address et user_agent |
+| R2.7 | `POST /auth/forgot-password` — demande de réinitialisation | Renvoie toujours HTTP 200 (anti-énumération) ; email envoyé via Resend si compte actif trouvé ; token brut `secrets.token_urlsafe(32)` — hash SHA-256 stocké en base |
+| R2.8 | `POST /auth/reset-password` — changement de mot de passe | Token validé (non expiré, non utilisé) ; `password_hash` mis à jour ; `used_at` marqué ; audit log `PASSWORD_RESET` |
+
+#### Table créée (feature reset-password)
+
+`password_reset_tokens` — champs : `id`, `user_id` (FK → users), `token_hash` (SHA-256, unique), `expires_at` (30 min), `used_at` (nullable), `created_at`
+
+Service email : `services/email_service.py` — `EmailService.send_password_reset()` via SDK Resend, expéditeur `contact@contact.chleo-consulting.fr`
 
 #### Requirements P1
 
@@ -318,7 +327,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 | Q1 | ~~Quels formats CSV bancaires prioriser ? (Boursorama, CA, BNP, LCL…)~~ → **Boursorama** livré (`parsers/boursorama.py`) ; CA/BNP via `AbstractCsvParser` en phase suivante | Product | Étape 3 |
 | Q2 | ~~Taxonomie initiale des catégories (nombres, noms, icônes)~~ → **8 parents** (Alimentation, Transport, Logement, Loisirs & Culture, Santé, Shopping, Services & Abonnements, Revenus) + **20 enfants** ; pas d'icônes en MVP ; seedées par migration `c7d8e3f1a234`. **7 règles RegExp** par défaut (supermarché, fast food, essence, transports, taxi, streaming, pharmacie) | Product / UX | Étape 4 |
 | Q3 | ~~Où stocker les fichiers CSV uploadés : S3 ou temporaire serveur ?~~ → **Pas de stockage** : parsé en mémoire (`services/import_service.py`), seul le résultat est persisté en base | Engineering | Étape 3 |
-| Q4 | Notifications budget : email ou in-app uniquement en MVP ? | Product | Étape 7 |
+| Q4 | ~~Notifications budget : email ou in-app uniquement en MVP ?~~ → **In-app uniquement** pour les budgets (flag `alert` dans l'API — `over_budget` / `near_limit`). Email utilisé uniquement pour la réinitialisation de mot de passe (`services/email_service.py` via Resend). | Product | Étape 7 |
 
 ---
 

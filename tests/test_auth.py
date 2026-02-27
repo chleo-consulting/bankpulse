@@ -1,7 +1,11 @@
+import hashlib
+from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
 
 from core.security import create_access_token, create_refresh_token, hash_password, verify_password
-from model.models import User
+from model.models import PasswordResetToken, User
 
 # ---------------------------------------------------------------------------
 # Utilitaires
@@ -217,3 +221,238 @@ def test_login_creates_audit_log(client: TestClient, db_session):
 def test_logout_returns_204(client: TestClient):
     resp = client.post("/api/v1/auth/logout")
     assert resp.status_code == 204
+
+
+# ---------------------------------------------------------------------------
+# R2.7 — Mot de passe oublié
+# ---------------------------------------------------------------------------
+
+
+def _forgot(client: TestClient, email: str = "alice@example.com"):
+    return client.post("/api/v1/auth/forgot-password", json={"email": email})
+
+
+def _reset(client: TestClient, token: str, new_password: str = "NewSecret123!"):
+    return client.post(
+        "/api/v1/auth/reset-password",
+        json={"token": token, "new_password": new_password},
+    )
+
+
+def _get_raw_token_from_db(db_session, email: str) -> str | None:
+    """Récupère le hash du token depuis la DB pour les tests, puis retourne le raw token."""
+    # On ne peut pas inverser le hash, donc on l'insère directement avec un token connu
+    # Dans les tests on mock l'email et on crée le token manuellement
+    user = db_session.query(User).filter(User.email == email).first()
+    if user is None:
+        return None
+    reset = (
+        db_session.query(PasswordResetToken)
+        .filter(PasswordResetToken.user_id == user.id, PasswordResetToken.used_at.is_(None))
+        .order_by(PasswordResetToken.created_at.desc())
+        .first()
+    )
+    return reset.token_hash if reset else None
+
+
+def test_forgot_password_unknown_email_returns_200(client: TestClient):
+    """Ne révèle pas si l'email existe — toujours 200."""
+    with patch("api.v1.auth.EmailService") as _mock:
+        resp = _forgot(client, email="nobody@example.com")
+    assert resp.status_code == 200
+    assert "lien" in resp.json()["message"]
+
+
+def test_forgot_password_known_email_returns_200(client: TestClient):
+    _register(client)
+    with patch("api.v1.auth.EmailService") as _mock:
+        resp = _forgot(client)
+    assert resp.status_code == 200
+    assert "lien" in resp.json()["message"]
+
+
+def test_forgot_password_creates_reset_token_in_db(client: TestClient, db_session):
+    _register(client, email="reset_db@example.com")
+    with patch("api.v1.auth.EmailService"):
+        _forgot(client, email="reset_db@example.com")
+
+    user = db_session.query(User).filter(User.email == "reset_db@example.com").first()
+    assert user is not None
+    reset_token = (
+        db_session.query(PasswordResetToken)
+        .filter(PasswordResetToken.user_id == user.id)
+        .first()
+    )
+    assert reset_token is not None
+    assert reset_token.used_at is None
+    assert reset_token.expires_at > datetime.utcnow()
+
+
+def test_forgot_password_sends_email(client: TestClient):
+    _register(client)
+    with patch("api.v1.auth.EmailService") as MockEmailService:
+        mock_instance = MagicMock()
+        MockEmailService.return_value = mock_instance
+        _forgot(client)
+    mock_instance.send_password_reset.assert_called_once()
+    call_args = mock_instance.send_password_reset.call_args
+    assert call_args[0][0] == "alice@example.com"
+    assert "reset-password?token=" in call_args[0][1]
+
+
+def test_forgot_password_unknown_email_does_not_send_email(client: TestClient):
+    with patch("api.v1.auth.EmailService") as MockEmailService:
+        mock_instance = MagicMock()
+        MockEmailService.return_value = mock_instance
+        _forgot(client, email="ghost@example.com")
+    mock_instance.send_password_reset.assert_not_called()
+
+
+def test_forgot_password_invalidates_previous_tokens(client: TestClient, db_session):
+    """Deux demandes successives → le premier token est invalidé."""
+    _register(client, email="multi_reset@example.com")
+    with patch("api.v1.auth.EmailService"):
+        _forgot(client, email="multi_reset@example.com")
+        _forgot(client, email="multi_reset@example.com")
+
+    user = db_session.query(User).filter(User.email == "multi_reset@example.com").first()
+    all_tokens = (
+        db_session.query(PasswordResetToken)
+        .filter(PasswordResetToken.user_id == user.id)
+        .all()
+    )
+    assert len(all_tokens) == 2
+    used_tokens = [t for t in all_tokens if t.used_at is not None]
+    active_tokens = [t for t in all_tokens if t.used_at is None]
+    assert len(used_tokens) == 1
+    assert len(active_tokens) == 1
+
+
+def test_reset_password_valid_token_changes_password(client: TestClient, db_session):
+    _register(client, email="valid_reset@example.com")
+
+    raw_token = "test_raw_token_valid_123"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    user = db_session.query(User).filter(User.email == "valid_reset@example.com").first()
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=datetime.now(UTC) + timedelta(minutes=30),
+    )
+    db_session.add(reset_token)
+    db_session.flush()
+
+    resp = _reset(client, token=raw_token, new_password="NewPassword456!")
+    assert resp.status_code == 200
+    assert "succès" in resp.json()["message"]
+
+    db_session.refresh(user)
+    assert verify_password("NewPassword456!", user.password_hash)
+
+
+def test_reset_password_invalid_token_returns_400(client: TestClient):
+    resp = _reset(client, token="completely_invalid_token_xyz")
+    assert resp.status_code == 400
+
+
+def test_reset_password_expired_token_returns_400(client: TestClient, db_session):
+    _register(client, email="expired_reset@example.com")
+
+    raw_token = "test_raw_token_expired_123"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    user = db_session.query(User).filter(User.email == "expired_reset@example.com").first()
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=datetime.now(UTC) - timedelta(minutes=1),  # déjà expiré
+    )
+    db_session.add(reset_token)
+    db_session.flush()
+
+    resp = _reset(client, token=raw_token)
+    assert resp.status_code == 400
+
+
+def test_reset_password_already_used_token_returns_400(client: TestClient, db_session):
+    _register(client, email="used_reset@example.com")
+
+    raw_token = "test_raw_token_used_123"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    user = db_session.query(User).filter(User.email == "used_reset@example.com").first()
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=datetime.now(UTC) + timedelta(minutes=30),
+        used_at=datetime.now(UTC),  # déjà utilisé
+    )
+    db_session.add(reset_token)
+    db_session.flush()
+
+    resp = _reset(client, token=raw_token)
+    assert resp.status_code == 400
+
+
+def test_reset_password_marks_token_as_used(client: TestClient, db_session):
+    _register(client, email="mark_used@example.com")
+
+    raw_token = "test_raw_token_mark_used_123"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    user = db_session.query(User).filter(User.email == "mark_used@example.com").first()
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=datetime.now(UTC) + timedelta(minutes=30),
+    )
+    db_session.add(reset_token)
+    db_session.flush()
+
+    _reset(client, token=raw_token)
+
+    db_session.refresh(reset_token)
+    assert reset_token.used_at is not None
+
+
+def test_reset_password_creates_audit_log(client: TestClient, db_session):
+    from model.models import AuditLog
+
+    _register(client, email="audit_reset@example.com")
+
+    raw_token = "test_raw_token_audit_123"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    user = db_session.query(User).filter(User.email == "audit_reset@example.com").first()
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=datetime.now(UTC) + timedelta(minutes=30),
+    )
+    db_session.add(reset_token)
+    db_session.flush()
+
+    _reset(client, token=raw_token)
+
+    log = (
+        db_session.query(AuditLog)
+        .filter(AuditLog.action == "PASSWORD_RESET", AuditLog.user_id == user.id)
+        .first()
+    )
+    assert log is not None
+    assert log.entity_type == "user"
+
+
+def test_forgot_password_creates_audit_log(client: TestClient, db_session):
+    from model.models import AuditLog
+
+    _register(client, email="audit_forgot@example.com")
+    with patch("api.v1.auth.EmailService"):
+        _forgot(client, email="audit_forgot@example.com")
+
+    user = db_session.query(User).filter(User.email == "audit_forgot@example.com").first()
+    log = (
+        db_session.query(AuditLog)
+        .filter(
+            AuditLog.action == "FORGOT_PASSWORD_REQUEST",
+            AuditLog.user_id == user.id,
+        )
+        .first()
+    )
+    assert log is not None

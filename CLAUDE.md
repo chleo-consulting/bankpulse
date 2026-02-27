@@ -18,6 +18,8 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 8 Phase 3 complétée** : Auth — Login/Register (Zod + react-hook-form), cookies HttpOnly, proxy.ts, hook useAuth, logout TopBar.
 **Étape 8 Phase 4 complétée** : Dashboard — KPI Cards, Donut Chart (Recharts), Top marchands, Abonnements récurrents, Empty states. Server Component + fetch JWT via cookies().
 **Étape 8 Phase 5 complétée** : Mes Comptes — liste AccountCard, solde consolidé, modal Ajouter compte, modal Importer CSV (dropzone + progress + résultat), route handlers API `/api/accounts/*`.
+**Étape 8 Phase 6 complétée** : Transactions — filtres 8 critères, table checkbox, category inline, bulk-tag, export CSV, pagination cursor prev/next, route handlers `/api/transactions/*`.
+**Étape 8 Phase 7 complétée** : Budgets — KPI cards, BudgetProgressCard (progress bar tricolore, alertes), navigation mensuelle URL, modal create/edit (2 schemas Zod distincts), route handlers `/api/budgets/*`.
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`, et le detail des pages dans `SPEC_UI_PAGES.md`
 
@@ -129,7 +131,9 @@ frontend/
 │   ├── (dashboard)/
 │   │   ├── layout.tsx                    ← DashboardLayout (client, useState sidebarOpen)
 │   │   ├── dashboard/page.tsx            ← Server Component async, fetch 4 endpoints, empty state
-│   │   └── accounts/page.tsx             ← Server Component async, fetch comptes, passe à AccountsList
+│   │   ├── accounts/page.tsx             ← Server Component async, fetch comptes, passe à AccountsList
+│   │   ├── transactions/page.tsx         ← Server Component async, fetch txns+cats+accounts+tags
+│   │   └── budgets/page.tsx              ← Server Component async, searchParams month, fetch progress+cats
 │   ├── api/auth/
 │   │   ├── login/route.ts               ← proxy → FastAPI + Set-Cookie access_token HttpOnly
 │   │   ├── register/route.ts            ← proxy → FastAPI register + auto-login + Set-Cookie
@@ -138,6 +142,16 @@ frontend/
 │   │   ├── route.ts                     ← GET (liste) + POST (créer) → FastAPI avec Bearer
 │   │   ├── [id]/route.ts                ← PATCH + DELETE → FastAPI avec Bearer
 │   │   └── [id]/import/route.ts         ← POST multipart → FastAPI /accounts/{id}/import
+│   ├── api/transactions/
+│   │   ├── route.ts                     ← GET list cursor-based → FastAPI
+│   │   ├── search/route.ts              ← GET search → FastAPI
+│   │   ├── bulk-tag/route.ts            ← POST → FastAPI
+│   │   ├── export/route.ts              ← GET CSV → FastAPI
+│   │   └── [id]/category/route.ts       ← PATCH → FastAPI
+│   ├── api/budgets/
+│   │   ├── route.ts                     ← GET liste + POST créer → FastAPI
+│   │   ├── progress/route.ts            ← GET progression par mois → FastAPI
+│   │   └── [id]/route.ts                ← PATCH + DELETE → FastAPI
 │   ├── globals.css                       ← design tokens BankPulse + shadcn vars
 │   ├── layout.tsx                        ← root layout (Inter + JetBrains Mono, lang="fr", suppressHydrationWarning)
 │   └── page.tsx                          ← redirect /dashboard
@@ -155,12 +169,18 @@ frontend/
 │   ├── accounts-list.tsx                 ← "use client" — liste + solde consolidé + modals
 │   ├── add-account-modal.tsx             ← Dialog Zod + react-hook-form (nom, IBAN, type, solde)
 │   └── import-csv-modal.tsx             ← dropzone drag&drop + upload multipart + résultat
+├── components/transactions/
+│   └── transactions-list.tsx             ← "use client" — filtres 8 critères, table, pagination, bulk, export
+├── components/budgets/
+│   ├── budgets-list.tsx                  ← "use client" — navigation mensuelle, KPI cards, liste, empty state
+│   ├── budget-progress-card.tsx          ← progress bar tricolore, alertes, dropdown actions
+│   └── budget-modal.tsx                  ← Dialog create/edit — deux forms Zod distincts (create ≠ edit)
 ├── hooks/
 │   └── useAuth.ts                        ← useAuth() : logout() + isLoggingOut
 ├── lib/
 │   ├── utils.ts                         ← cn() (shadcn)
 │   └── format.ts                        ← formatAmount (EUR fr-FR), formatDate (fr-FR)
-├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError + types dashboard + BankAccountResponse, ImportResult, AccountImportSummary
+├── types/api.ts                         ← LoginRequest, RegisterRequest, TokenResponse, UserResponse, ApiError + types dashboard + BankAccountResponse, ImportResult, AccountImportSummary + TagResponse, CategoryResponse, CategoryWithChildrenResponse, TransactionResponse, CursorTransactionListResponse + BudgetResponse, BudgetProgressItem, BudgetsProgress
 ├── proxy.ts                             ← protection routes (Next.js 16, anciennement middleware.ts)
 ├── .env.local                           ← NEXT_PUBLIC_API_URL=http://localhost:8000
 └── next.config.ts                       ← proxy rewrites /api/v1/* → FastAPI :8000
@@ -185,6 +205,10 @@ frontend/
 - **Sonner Toaster** : importer directement `Toaster` depuis `"sonner"` dans `app/layout.tsx` (pas le wrapper `components/ui/sonner.tsx` qui dépend de `next-themes`). Usage client inchangé : `import { toast } from "sonner"`.
 - **Route handlers avec segments dynamiques** : en Next.js 15/16+, `params` est une Promise → `const { id } = await params`. Typer comme `{ params: Promise<{ id: string }> }`.
 - **Mutations client → route handlers** : les pages avec CRUD utilisent le pattern Server Component (fetch initial) + Client Component (état + mutations). Les mutations appellent `/api/<resource>/[id]` (route handlers Next.js) qui lisent le cookie HttpOnly et proxifient vers FastAPI avec `Authorization: Bearer`.
+- **`searchParams` en Next.js 15/16+** : comme `params`, `searchParams` dans `page.tsx` est une Promise → `const { month } = await searchParams`. Typer comme `{ searchParams: Promise<{ month?: string }> }`. Pattern URL-based state : Client Component fait `router.push('/path?param=value')` → Server Component re-render avec nouvelles données.
+- **Progress bar couleur** : `[&>div]:bg-emerald-500` sur le composant root `<Progress>` pour surcharger le `bg-primary` hardcodé sur l'indicateur interne. Tricolore : `[&>div]:bg-emerald-500` (ok) / `[&>div]:bg-amber-500` (near_limit) / `[&>div]:bg-red-500` (over_budget).
+- **`EmptyState` partagé** : le composant `components/shared/empty-state.tsx` n'accepte que `href` pour l'action (bouton `<Link>`). Si l'action doit déclencher une modale (`onClick`), créer un empty state inline directement dans le composant client — ne pas modifier le composant partagé.
+- **Modal create vs edit — deux forms** : quand create et edit ont des schemas Zod différents (ex: category_id requis en create, absent en edit), créer deux instances `useForm` distinctes (toujours initialisées — pas de hook conditionnel). Réinitialiser le form approprié dans un `useEffect` sur `[open, editItem]`.
 
 **Conventions de code** :
 - Annotations Python 3.10+ : `X | None` et `list[X]` (pas `Optional`, pas `List`)

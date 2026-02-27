@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
 **Date** : 26 février 2026  
-**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ livrées)
+**Statut** : En cours (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ livrées)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -14,6 +14,7 @@
 > Phase 4 livrée : Dashboard — KPI Cards (Solde + Dépenses), Donut chart catégories (Recharts), Top marchands, Abonnements récurrents, Empty states — `app/(dashboard)/dashboard/page.tsx` · `components/dashboard/category-chart.tsx` · `components/shared/kpi-card.tsx` · `components/shared/empty-state.tsx`
 > Phase 5 livrée : Mes Comptes — liste AccountCard, solde consolidé, modal Ajouter compte (Zod + react-hook-form), modal Importer CSV (dropzone + progress + résultat), route handlers `/api/accounts/*` — `app/(dashboard)/accounts/page.tsx` · `components/accounts/accounts-list.tsx` · `components/accounts/add-account-modal.tsx` · `components/accounts/import-csv-modal.tsx`
 > Phase 6 livrée : Transactions — filtres 8 critères (compte, catégorie, tag, dates, montants, recherche), table avec checkbox sélection, category select inline, bulk-tag modal, export CSV, pagination cursor prev/next — `app/(dashboard)/transactions/page.tsx` · `components/transactions/transactions-list.tsx` · `app/api/transactions/*`
+> Phase 7 livrée : Budgets — KPI cards résumé, BudgetProgressCard (progress bar + alertes over/near_limit + jours restants), navigation mensuelle (prev/next via URL), modal créer/éditer budget, suppression — `app/(dashboard)/budgets/page.tsx` · `components/budgets/budgets-list.tsx` · `components/budgets/budget-progress-card.tsx` · `components/budgets/budget-modal.tsx` · `app/api/budgets/*`
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
@@ -26,7 +27,7 @@
 | Étape 4 | Page Transactions — inline category selector |
 | ~~Étape 5~~ ✅ | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions — **Phase 4 livrée** |
 | ~~Étape 6~~ ✅ | Page Transactions : filtres, recherche, bulk-tag, export CSV — **Phase 6 livrée** |
-| Étape 7 | Page Budgets : Progress bars par catégorie, badges d'alerte |
+| ~~Étape 7~~ ✅ | Page Budgets : Progress bars par catégorie, badges d'alerte — **Phase 7 livrée** |
 
 ### Requirements P0
 
@@ -553,11 +554,11 @@ function DashboardSkeleton() {
 4. ✅ Bulk-tag modal (sélection checkboxes + POST /transactions/bulk-tag)
 5. ✅ Export CSV (téléchargement blob via /api/transactions/export)
 
-### Phase 7 : Budgets (Jour 9-10)
-1. KPI Cards résumé
-2. BudgetProgressCard (progress bar + alertes)
-3. Modal créer/éditer budget
-4. Calcul progression temps réel
+### Phase 7 : Budgets (Jour 9-10) ✅ LIVRÉE
+1. ✅ KPI Cards résumé
+2. ✅ BudgetProgressCard (progress bar + alertes)
+3. ✅ Modal créer/éditer budget
+4. ✅ Calcul progression temps réel
 
 ### Phase 8 : Polish (Jour 10-11)
 1. Responsive (mobile + tablet)
@@ -586,7 +587,7 @@ function DashboardSkeleton() {
 - [x] Dashboard (KPIs, Donut, Top Marchands, Abonnements)
 - [x] Mes Comptes (liste, import CSV, CRUD)
 - [x] Transactions (filtres, table, bulk actions, export)
-- [ ] Budgets (progression, alertes, CRUD)
+- [x] Budgets (progression, alertes, CRUD)
 - [x] Login / Register
 - [ ] Paramètres (profil, sécurité)
 
@@ -597,7 +598,7 @@ function DashboardSkeleton() {
 - [x] SubscriptionRow (dans DashboardPage)
 - [x] AccountCard
 - [x] TransactionRow
-- [ ] BudgetProgressCard
+- [x] BudgetProgressCard
 - [x] EmptyState
 - [ ] Skeleton loaders
 

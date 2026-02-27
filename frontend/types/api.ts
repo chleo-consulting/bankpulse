@@ -155,3 +155,29 @@ export interface CursorTransactionListResponse {
   next_cursor: string | null
   page_size: number
 }
+
+// Budgets
+export interface BudgetResponse {
+  id: string
+  user_id: string
+  category_id: string
+  period_type: string
+  amount_limit: number
+  created_at: string
+}
+
+export interface BudgetProgressItem {
+  budget_id: string
+  category_id: string
+  category_name: string
+  period_type: string
+  limit: number
+  spent: number
+  pct: number
+  alert: "over_budget" | "near_limit" | null
+}
+
+export interface BudgetsProgress {
+  month: string | null
+  items: BudgetProgressItem[]
+}

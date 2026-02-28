@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Whenever working with any third-party library or something similar, you MUST look up the official documentation to ensure that you're working with up-to-date information.
+Use the docs-explorer subagent for efficient documentation lookup.
+
 ## Project Overview
 
 BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backend est en FastAPI + SQLAlchemy 2.0 + PostgreSQL, le frontend (`frontend/`) est en Next.js 16 + shadcn/ui + Tailwind v4.

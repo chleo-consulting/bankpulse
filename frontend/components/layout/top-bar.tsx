@@ -20,6 +20,7 @@ const routeLabels: Record<string, string> = {
   transactions: "Transactions",
   budgets: "Budgets",
   settings: "Paramètres",
+  import: "Importer",
 }
 
 function Breadcrumbs() {

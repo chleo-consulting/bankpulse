@@ -25,6 +25,7 @@ BankPulse est un SaaS d'analyse financière personnelle (MVP Phase 1). Le backen
 **Étape 8 Phase 7 complétée** : Budgets — KPI cards, BudgetProgressCard (progress bar tricolore, alertes), navigation mensuelle URL, modal create/edit (2 schemas Zod distincts), route handlers `/api/budgets/*`.
 **Étape 8 Phase 8 complétée** : Polish — loading skeletons (4 × `loading.tsx` App Router auto-Suspense), page `/settings` (SettingsTabs 3 onglets : profil/sécurité/à propos, UI only). Frontend MVP complet.
 **Feature Mot de passe oublié complétée** : POST /auth/forgot-password + reset-password (backend), pages `/forgot-password` + `/reset-password` (frontend), service Resend, table `password_reset_tokens`, 13 tests. Coverage 97.80% (199 tests).
+**Feature Import multi-banque complétée** : page `/import` (wizard 3 étapes : sélection banque → upload CSV → résultats), route handler dynamique `/api/import/[format]` → `POST /api/v1/import/{format}`, config statique `IMPORT_FORMATS` avec flag `available` pour activation progressive. Boursorama actif, BNP/CA/LCL/SG en "Bientôt disponible".
 
 Les specifications détaillées du produit sont dans `SPEC.md`. Les étapes de développement backend sont décrites dans `SPEC_BACKEND.md`. Le design de l'UI et des layout sont décrites dans `SPEC_UI.md`, et le detail des pages dans `SPEC_UI_PAGES.md`
 
@@ -122,6 +123,18 @@ main.py                   — App FastAPI + GET /health
 alembic/env.py            — Lit DATABASE_URL depuis settings, target_metadata = Base.metadata
 alembic/versions/11ad90472e66_add_password_reset_tokens.py — table password_reset_tokens
 tests/conftest.py         — Fixtures : test_engine (session), db_session (function, rollback), client, seed_categories, seed_rules
+```
+
+#### Frontend — modules import
+
+```
+frontend/app/(dashboard)/import/page.tsx          — Server Component statique (pas de fetch)
+frontend/app/(dashboard)/import/loading.tsx       — Skeleton App Router auto-Suspense
+frontend/app/api/import/[format]/route.ts         — Route handler proxy → POST /api/v1/import/{format}
+frontend/components/import/import-wizard.tsx      — Wizard orchestrateur ("use client"), WizardStep + UploadState discriminated unions, IMPORT_FORMATS config
+frontend/components/import/format-selector.tsx    — Étape 1 : grille banques (available / aria-disabled)
+frontend/components/import/file-upload-step.tsx   — Étape 2 : dropzone drag-and-drop + fileInputRef reset
+frontend/components/import/import-result-view.tsx — Étape 3 : tableau résultats par compte + totaux
 ```
 
 ### Frontend (`frontend/`)

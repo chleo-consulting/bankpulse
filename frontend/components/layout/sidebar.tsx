@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Settings,
   Target,
+  Upload,
 } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/accounts", label: "Mes Comptes", icon: CreditCard },
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/budgets", label: "Budgets", icon: Target },
+  { href: "/import", label: "Importer", icon: Upload },
 ]
 
 function NavItem({

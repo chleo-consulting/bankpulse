@@ -102,6 +102,12 @@ export interface BankAccountListResponse extends BankAccountResponse {
   shared_by_name: string | null
 }
 
+export interface SkippedTransaction {
+  transaction_date: string
+  amount: number
+  description: string
+}
+
 export interface AccountImportSummary {
   account_num: string
   account_label: string
@@ -109,6 +115,7 @@ export interface AccountImportSummary {
   nb_skipped: number
   nb_errors: number
   balance_updated: boolean
+  skipped_transactions: SkippedTransaction[]
 }
 
 export interface ImportResult {

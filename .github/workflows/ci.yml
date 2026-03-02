@@ -28,7 +28,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://bankpulse:bankpulse@localhost:5432/bankpulse
       DATABASE_TEST_URL: postgresql://bankpulse:bankpulse@localhost:5432/bankpulse_test
-      SECRET_KEY: ci-secret-key-not-used-in-production
+      SECRET_KEY: ac9f4994b24307a706ed3b212efd653522bf98ae4bb00ad4f112170e8d231e5e
       RESEND_API_KEY: re_fake_key_ci
       FRONTEND_URL: http://localhost:3000
       PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: 30

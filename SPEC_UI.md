@@ -577,7 +577,7 @@ function DashboardSkeleton() {
 2. ✅ `import-wizard.tsx` — orchestrateur "use client", discriminated unions `WizardStep` + `UploadState`
 3. ✅ `format-selector.tsx` — grille banques avec flag `available` (aria-disabled pour les formats à venir)
 4. ✅ `file-upload-step.tsx` — dropzone drag-and-drop, `fileInputRef` reset après import
-5. ✅ `import-result-view.tsx` — tableau résultats par compte (créés / ignorés / erreurs)
+5. ✅ `import-result-view.tsx` — tableau résultats par compte (créés / ignorés / erreurs) ; compteur "Ignorées" cliquable → Dialog avec le détail des doublons (date / description / montant)
 6. ✅ Route handler `/api/import/[format]/route.ts` — proxy dynamique vers `POST /api/v1/import/{format}`
 7. ✅ Sidebar : item "Importer" (icône Upload) + routeLabel TopBar
 

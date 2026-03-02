@@ -1,4 +1,13 @@
+from datetime import date
+from decimal import Decimal
+
 from pydantic import BaseModel
+
+
+class SkippedTransaction(BaseModel):
+    transaction_date: date
+    amount: Decimal
+    description: str
 
 
 class AccountImportSummary(BaseModel):
@@ -8,6 +17,7 @@ class AccountImportSummary(BaseModel):
     nb_skipped: int
     nb_errors: int
     balance_updated: bool
+    skipped_transactions: list[SkippedTransaction] = []
 
 
 class ImportResult(BaseModel):

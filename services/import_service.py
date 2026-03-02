@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from model.models import AuditLog, BankAccount, Merchant, Transaction
 from parsers.boursorama import BoursoramaCsvParser
-from schemas.import_ import AccountImportSummary, ImportResult
+from schemas.import_ import AccountImportSummary, ImportResult, SkippedTransaction
 from services.categorization_service import CategorizationService
 
 
@@ -42,6 +42,7 @@ class ImportService:
             nb_created = 0
             nb_skipped = 0
             nb_errors = 0
+            skipped: list[SkippedTransaction] = []
 
             for txn in parsed_account.transactions:
                 existing = (
@@ -51,6 +52,13 @@ class ImportService:
                 )
                 if existing:
                     nb_skipped += 1
+                    skipped.append(
+                        SkippedTransaction(
+                            transaction_date=txn.transaction_date,
+                            amount=txn.amount,
+                            description=txn.description,
+                        )
+                    )
                     continue
 
                 savepoint = self.db.begin_nested()
@@ -107,6 +115,7 @@ class ImportService:
                     nb_skipped=nb_skipped,
                     nb_errors=nb_errors,
                     balance_updated=balance_updated,
+                    skipped_transactions=skipped,
                 )
             )
 
@@ -141,6 +150,7 @@ class ImportService:
                 last_balance = parsed_account.balance
 
             nb_created, nb_skipped, nb_errors = 0, 0, 0
+            skipped: list[SkippedTransaction] = []
 
             for txn in parsed_account.transactions:
                 existing = (
@@ -150,6 +160,13 @@ class ImportService:
                 )
                 if existing:
                     nb_skipped += 1
+                    skipped.append(
+                        SkippedTransaction(
+                            transaction_date=txn.transaction_date,
+                            amount=txn.amount,
+                            description=txn.description,
+                        )
+                    )
                     continue
 
                 savepoint = self.db.begin_nested()
@@ -189,6 +206,7 @@ class ImportService:
                     nb_skipped=nb_skipped,
                     nb_errors=nb_errors,
                     balance_updated=parsed_account.balance is not None,
+                    skipped_transactions=skipped,
                 )
             )
 

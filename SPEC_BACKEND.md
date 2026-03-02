@@ -139,7 +139,7 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 #### Requirements P1
 
-- Rapport d'import : nb lignes traitées, erreurs, doublons ignorés *(inclus dans `ImportResult` — livré)*
+- Rapport d'import : nb lignes traitées, erreurs, doublons ignorés *(inclus dans `ImportResult` — livré ; `AccountImportSummary.skipped_transactions` expose le détail des doublons)*
 - Support format OFX / QIF
 
 #### Schéma de données impliqué
@@ -298,7 +298,7 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 ### Feature Import Multi-banque ✅ LIVRÉE
 
-> Coverage : 97.97% (249 tests) | Endpoints backend : `POST /import/boursorama` (existant, réutilisé) | Frontend : page `/import` wizard 3 étapes
+> Coverage : 97.96% (252 tests) | Endpoints backend : `POST /import/boursorama` (existant, réutilisé) | Frontend : page `/import` wizard 3 étapes
 
 **Objectif** : L'utilisateur peut importer un CSV depuis une page dédiée, avec sélection de la banque et progression visuelle.
 
@@ -306,6 +306,7 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 - En tant qu'utilisateur, je veux sélectionner ma banque puis importer mon CSV depuis une page dédiée pour une expérience guidée.
 - En tant qu'utilisateur, je veux voir le résultat de l'import par compte (créés / ignorés / erreurs) pour vérifier l'intégrité.
+- En tant qu'utilisateur qui importe un CSV multi-compte Boursorama, je veux consulter le détail des doublons ignorés (date, montant, description) pour pouvoir les analyser.
 
 #### Requirements P0
 
@@ -315,6 +316,11 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 | RF1.2 | Route handler dynamique `/api/import/[format]` | Proxy vers `POST /api/v1/import/{format}` |
 | RF1.3 | Config `IMPORT_FORMATS` avec flag `available` | Boursorama actif ; BNP/CA/LCL/SG en "Bientôt disponible" |
 | RF1.4 | Dropzone drag-and-drop + reset après import | `fileInputRef.current.value = ""` pour permettre réimport |
+| RF1.5 | Exposer le détail des doublons dans la réponse import | `AccountImportSummary.skipped_transactions: list[SkippedTransaction]` (date, montant, description) — vide si aucun doublon ; compteur "Ignorées" cliquable dans l'UI → Dialog de détail |
+
+#### Schéma import enrichi
+
+`schemas/import_.py` — `SkippedTransaction(transaction_date: date, amount: Decimal, description: str)` · `AccountImportSummary.skipped_transactions: list[SkippedTransaction] = []`
 
 #### Composants frontend
 
@@ -324,7 +330,7 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 ### Feature Partage de Comptes ✅ LIVRÉE
 
-> Coverage : 97.97% (249 tests) | Migration : `a1b2c3d4e5f6_add_account_shares`
+> Coverage : 97.96% (252 tests) | Migration : `a1b2c3d4e5f6_add_account_shares`
 
 **Objectif** : Un utilisateur peut partager un ou plusieurs de ses comptes avec un autre utilisateur. L'invité accepte ou refuse compte par compte. Une fois accepté, le compte apparaît dans la liste des deux utilisateurs.
 

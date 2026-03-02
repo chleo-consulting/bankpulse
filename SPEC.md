@@ -116,6 +116,7 @@ Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
 -   Je veux rechercher rapidement une transaction.
 -   Je veux classer les transactions par catégorie
 -   Je veux tagger plusieurs transactions en masse.
+-   En tant qu'utilisateur qui importe un CSV multi-compte Boursorama, je veux consulter le détail des doublons ignorés (date, montant, description) pour les analyser.
 
 ### Partage de Comptes
 

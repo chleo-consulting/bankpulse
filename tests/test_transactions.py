@@ -8,10 +8,10 @@ from fastapi.testclient import TestClient
 from core.security import create_access_token
 from model.models import AuditLog, BankAccount, Merchant, Tag, Transaction, User
 
-# CSV avec une transaction CARREFOUR pour tester l'auto-catégorisation
+# CSV avec une transaction CARREFOUR pour tester l'auto-catégorisation - nouveau format ";"
 IMPORT_CSV_CARREFOUR = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-03-01","2025-03-01","CARTE CARREFOUR CITY","Alimentation","Vie quotidienne",-50.00,"","AUTOCATEG_ACC_001","Compte Test",500.00,"CB","carrefour"
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-03-01;2025-03-01;CARTE CARREFOUR CITY;Alimentation;Vie quotidienne;carrefour;-50,00;;AUTOCATEG_ACC_001;Compte Test;500.00
 """
 
 

@@ -6,12 +6,12 @@ from fastapi.testclient import TestClient
 from core.security import create_access_token
 from model.models import BankAccount, Transaction, User
 
-# CSV de test minimal
+# CSV de test minimal (nouveau format : séparateur ";", montants français)
 SIMPLE_CSV = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-01-15","2025-01-15","CARTE Amazon","Achats","Shopping",-29.99,"","IMPORT_ACC001","Test Import",1500.00,"CB","amazon"
-"2025-01-16","2025-01-16","VIR Salaire","Revenus","Revenus",2500.00,"","IMPORT_ACC001","Test Import",4000.00,"","employeur"
-"2025-01-17","2025-01-17","CARTE Carrefour","Alimentation","Vie quotidienne",-45.50,"","IMPORT_ACC002","Autre Compte",800.00,"CB","carrefour"
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-01-15;2025-01-15;CARTE Amazon;Achats;Shopping;amazon;-29,99;;IMPORT_ACC001;Test Import;1500.00
+2025-01-16;2025-01-16;VIR Salaire;Revenus;Revenus;employeur;2500,00;;IMPORT_ACC001;Test Import;4000.00
+2025-01-17;2025-01-17;CARTE Carrefour;Alimentation;Vie quotidienne;carrefour;-45,50;;IMPORT_ACC002;Autre Compte;800.00
 """
 
 

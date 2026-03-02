@@ -5,27 +5,32 @@ import pytest
 
 from parsers.boursorama import BoursoramaCsvParser
 
-# CSV minimal reproduisant le format Boursorama réel (multi-comptes)
+# CSV minimal reproduisant le nouveau format Boursorama (séparateur ";", montants français)
 SIMPLE_CSV = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-01-15","2025-01-15","CARTE Amazon","Achats","Shopping",-29.99,"","ACC001","Mon Compte",1500.00,"CB","amazon"
-"2025-01-16","2025-01-16","VIR Salaire","Revenus","Revenus",2500.00,"","ACC001","Mon Compte",4000.00,"","employeur"
-"2025-01-17","2025-01-17","CARTE Carrefour","Alimentation","Vie quotidienne",-45.50,"","ACC002","Autre Compte",800.00,"CB","carrefour"
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-01-15;2025-01-15;CARTE Amazon;Achats;Shopping;amazon;-29,99;;ACC001;Mon Compte;1500.00
+2025-01-16;2025-01-16;VIR Salaire;Revenus;Revenus;employeur;2500,00;;ACC001;Mon Compte;4000.00
+2025-01-17;2025-01-17;CARTE Carrefour;Alimentation;Vie quotidienne;carrefour;-45,50;;ACC002;Autre Compte;800.00
 """
 
 MASKED_ACCOUNT_CSV = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-03-31","2025-03-31","CARTE 28/03/25 U EXPRESS","Alimentation","Vie quotidienne",-50.72,"","4810****2680","Joint","","CB_charles","u express"
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-03-31;2025-03-31;CARTE 28/03/25 U EXPRESS;Alimentation;Vie quotidienne;u express;-50,72;;4810****2680;Joint;;
 """
 
 EMPTY_BALANCE_CSV = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-05-01","2025-05-01","VIR TEST","Divers","Divers",100.00,"","ACC003","Test","","","test merchant"
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-05-01;2025-05-01;VIR TEST;Divers;Divers;test merchant;100,00;;ACC003;Test;;
 """
 
 NO_SUPPLIER_CSV = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-06-01","2025-06-01","VIR SEPA Loyer","Logement","Logement",-800.00,"","ACC001","Mon Compte",200.00,"",""
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-06-01;2025-06-01;VIR SEPA Loyer;Logement;Logement;;-800,00;;ACC001;Mon Compte;200.00
+"""
+
+THOUSANDS_CSV = b"""\
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-07-01;2025-07-01;VIR Vente Immo;Revenus;Revenus;virement notaire;"2 000,00";;ACC001;Mon Compte;12000.00
 """
 
 
@@ -56,6 +61,12 @@ class TestBoursoramaCsvParserParsing:
         acc1 = next(a for a in result.accounts if a.account_num == "ACC001")
         amazon_txn = next(t for t in acc1.transactions if "Amazon" in t.description)
         assert amazon_txn.amount == Decimal("-29.99")
+
+    def test_transaction_amount_with_thousands_separator(
+        self, parser: BoursoramaCsvParser
+    ) -> None:
+        result = parser.parse(THOUSANDS_CSV)
+        assert result.accounts[0].transactions[0].amount == Decimal("2000.00")
 
     def test_last_balance_per_account(self, parser: BoursoramaCsvParser) -> None:
         result = parser.parse(SIMPLE_CSV)
@@ -94,6 +105,7 @@ class TestBoursoramaCsvParserImportHash:
         acc1 = next(a for a in result.accounts if a.account_num == "ACC001")
         amazon_txn = next(t for t in acc1.transactions if "Amazon" in t.description)
 
+        # Le hash est calculé sur le montant normalisé (virgule → point, espaces supprimés)
         expected_hash = hashlib.sha256(b"2025-01-15|ACC001|-29.99|CARTE Amazon").hexdigest()
         assert amazon_txn.import_hash == expected_hash
 
@@ -125,14 +137,14 @@ class TestBoursoramaCsvParserEncoding:
 
 class TestBoursoramaCsvParserEdgeCases:
     def test_empty_csv_returns_empty(self, parser: BoursoramaCsvParser) -> None:
-        header_only = b'"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"\n'
+        header_only = b"dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance\n"
         result = parser.parse(header_only)
         assert result.accounts == []
 
     def test_row_missing_amount_skipped(self, parser: BoursoramaCsvParser) -> None:
         csv_missing_amount = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-01-01","2025-01-01","Test","","","","","ACC001","Test","","",""
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-01-01;2025-01-01;Test;;;;;ACC001;Test;;
 """
         result = parser.parse(csv_missing_amount)
         assert result.accounts == []

@@ -23,7 +23,7 @@ class BoursoramaCsvParser(AbstractCsvParser):
             raw = file.read()
 
         text = self._decode(raw)
-        reader = csv.DictReader(io.StringIO(text))
+        reader = csv.DictReader(io.StringIO(text), delimiter=";")
 
         accounts: dict[str, ParsedAccount] = {}
         balance_by_account: dict[str, Decimal] = {}
@@ -34,7 +34,9 @@ class BoursoramaCsvParser(AbstractCsvParser):
             date_op_str = row.get("dateOp", "").strip()
             date_val_str = row.get("dateVal", "").strip()
             label = row.get("label", "").strip()
-            amount_str = row.get("amount", "").strip()
+            amount_str = (
+                row.get("amount", "").strip().replace("\xa0", "").replace(" ", "").replace(",", ".")
+            )
             balance_str = row.get("accountbalance", "").strip()
             supplier = row.get("supplierFound", "").strip()
 

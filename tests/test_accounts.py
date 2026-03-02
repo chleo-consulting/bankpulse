@@ -7,11 +7,11 @@ from fastapi.testclient import TestClient
 from core.security import create_access_token
 from model.models import BankAccount, Transaction, User
 
-# CSV minimal pour l'import ciblé (compte ACC_TEST_001)
+# CSV minimal pour l'import ciblé (compte ACC_TEST_001) - nouveau format séparateur ";"
 IMPORT_CSV = b"""\
-"dateOp","dateVal","label","category","categoryParent","amount","comment","accountNum","accountLabel","accountbalance","CB","supplierFound"
-"2025-03-01","2025-03-01","CARTE Test","Achats","Shopping",-10.00,"","ACC_TEST_001","Compte Test",500.00,"CB","test_merchant"
-"2025-03-02","2025-03-02","VIR Salaire","Revenus","Revenus",1000.00,"","ACC_TEST_001","Compte Test",1500.00,"","employeur"
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-03-01;2025-03-01;CARTE Test;Achats;Shopping;test_merchant;-10,00;;ACC_TEST_001;Compte Test;500.00
+2025-03-02;2025-03-02;VIR Salaire;Revenus;Revenus;employeur;1000,00;;ACC_TEST_001;Compte Test;1500.00
 """
 
 LARGE_FILE = b"x" * (10 * 1024 * 1024 + 1)  # 10 Mo + 1 octet

@@ -2,7 +2,8 @@ import base64
 import csv
 import io
 import json
-from datetime import date, datetime, timezone
+from collections.abc import Generator
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -23,6 +24,7 @@ from model.models import (
     User,
     transaction_tags,
 )
+from schemas.transaction_filters import TransactionFilters, TransactionListParams
 from schemas.transactions import (
     BulkTagRequest,
     CursorTransactionListResponse,
@@ -31,6 +33,42 @@ from schemas.transactions import (
 )
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
+
+
+def _filters_dep(
+    account_id: UUID | None = Query(None),
+    category_id: UUID | None = Query(None),
+    merchant_id: UUID | None = Query(None),
+    tag_id: UUID | None = Query(None),
+    date_from: date | None = Query(None),
+    date_to: date | None = Query(None),
+    amount_min: Decimal | None = Query(None),
+    amount_max: Decimal | None = Query(None),
+) -> TransactionFilters:
+    """Dépendance FastAPI : construit un TransactionFilters depuis les query params."""
+    return TransactionFilters(
+        account_id=account_id,
+        category_id=category_id,
+        merchant_id=merchant_id,
+        tag_id=tag_id,
+        date_from=date_from,
+        date_to=date_to,
+        amount_min=amount_min,
+        amount_max=amount_max,
+    )
+
+
+def _list_params_dep(
+    filters: TransactionFilters = Depends(_filters_dep),
+    cursor: str | None = Query(None),
+    page_size: int = Query(50, ge=1, le=200),
+) -> TransactionListParams:
+    """Dépendance FastAPI : construit un TransactionListParams depuis les query params."""
+    return TransactionListParams(
+        **filters.model_dump(),
+        cursor=cursor,
+        page_size=page_size,
+    )
 
 
 def _encode_cursor(txn: Transaction) -> str:
@@ -75,6 +113,57 @@ def _build_base_query(db: Session, user: User):
     return db.query(Transaction).filter(Transaction.account_id.in_(user_account_ids))
 
 
+def _apply_filters(query, filters: TransactionFilters):
+    """Applique les filtres communs TransactionFilters à une requête transaction."""
+    if filters.account_id:
+        query = query.filter(Transaction.account_id == filters.account_id)
+    if filters.category_id:
+        query = query.filter(Transaction.category_id == filters.category_id)
+    if filters.merchant_id:
+        query = query.filter(Transaction.merchant_id == filters.merchant_id)
+    if filters.tag_id:
+        tagged_ids = select(transaction_tags.c.transaction_id).where(
+            transaction_tags.c.tag_id == filters.tag_id
+        )
+        query = query.filter(Transaction.id.in_(tagged_ids))
+    if filters.date_from:
+        query = query.filter(Transaction.transaction_date >= filters.date_from)
+    if filters.date_to:
+        query = query.filter(Transaction.transaction_date <= filters.date_to)
+    if filters.amount_min is not None:
+        query = query.filter(Transaction.amount >= filters.amount_min)
+    if filters.amount_max is not None:
+        query = query.filter(Transaction.amount <= filters.amount_max)
+    return query
+
+
+def _generate_jsonl(
+    db: Session, user: User, filters: TransactionFilters
+) -> Generator[str, None, None]:
+    """Génère les transactions en JSON Lines, page par page (mémoire O(1))."""
+    cursor_val: str | None = None
+    page_size = 100
+    while True:
+        query = _apply_filters(_build_base_query(db, user), filters)
+        query = query.order_by(Transaction.transaction_date.desc(), Transaction.id.desc())
+        if cursor_val:
+            cursor_date, cursor_id = _decode_cursor(cursor_val)
+            query = query.filter(
+                or_(
+                    Transaction.transaction_date < cursor_date,
+                    (Transaction.transaction_date == cursor_date) & (Transaction.id < cursor_id),
+                )
+            )
+        results = query.limit(page_size).all()
+        if not results:
+            break
+        for txn in results:
+            yield TransactionResponse.model_validate(txn).model_dump_json() + "\n"
+        if len(results) < page_size:
+            break
+        cursor_val = _encode_cursor(results[-1])
+
+
 @router.get("/search", response_model=CursorTransactionListResponse)
 def search_transactions(
     q: str = Query(..., min_length=1),
@@ -115,42 +204,27 @@ def search_transactions(
 @router.get("/export")
 def export_transactions(
     format: str = Query("csv"),
-    account_id: UUID | None = Query(None),
-    category_id: UUID | None = Query(None),
-    merchant_id: UUID | None = Query(None),
-    date_from: date | None = Query(None),
-    date_to: date | None = Query(None),
-    amount_min: Decimal | None = Query(None),
-    amount_max: Decimal | None = Query(None),
+    filters: TransactionFilters = Depends(_filters_dep),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
-    """Exporte les transactions filtrées en CSV UTF-8."""
-    if format != "csv":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Seul le format CSV est supporté"
+    """Exporte les transactions filtrées en CSV ou JSON Lines (format=csv|jsonl)."""
+    if format == "jsonl":
+        return StreamingResponse(
+            _generate_jsonl(db, current_user, filters),
+            media_type="application/jsonl",
+            headers={"Content-Disposition": "attachment; filename=transactions.jsonl"},
         )
 
-    query = _build_base_query(db, current_user)
+    if format != "csv":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Format non supporté. Valeurs acceptées : csv, jsonl",
+        )
 
-    if account_id:
-        query = query.filter(Transaction.account_id == account_id)
-    if category_id:
-        query = query.filter(Transaction.category_id == category_id)
-    if merchant_id:
-        query = query.filter(Transaction.merchant_id == merchant_id)
-    if date_from:
-        query = query.filter(Transaction.transaction_date >= date_from)
-    if date_to:
-        query = query.filter(Transaction.transaction_date <= date_to)
-    if amount_min is not None:
-        query = query.filter(Transaction.amount >= amount_min)
-    if amount_max is not None:
-        query = query.filter(Transaction.amount <= amount_max)
-
+    query = _apply_filters(_build_base_query(db, current_user), filters)
     transactions = query.order_by(Transaction.transaction_date.desc()).all()
 
-    # Charger les catégories en une requête
     cat_ids = {t.category_id for t in transactions if t.category_id}
     cats = {c.id: c.name for c in db.query(Category).filter(Category.id.in_(cat_ids)).all()}
 
@@ -181,46 +255,16 @@ def export_transactions(
 
 @router.get("", response_model=CursorTransactionListResponse)
 def list_transactions(
-    account_id: UUID | None = Query(None),
-    category_id: UUID | None = Query(None),
-    merchant_id: UUID | None = Query(None),
-    tag_id: UUID | None = Query(None),
-    date_from: date | None = Query(None),
-    date_to: date | None = Query(None),
-    amount_min: Decimal | None = Query(None),
-    amount_max: Decimal | None = Query(None),
-    cursor: str | None = Query(None),
-    page_size: int = Query(50, ge=1, le=200),
+    params: TransactionListParams = Depends(_list_params_dep),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CursorTransactionListResponse:
     """Liste les transactions avec pagination cursor-based et filtres multicritères."""
-    query = _build_base_query(db, current_user)
-
-    if account_id:
-        query = query.filter(Transaction.account_id == account_id)
-    if category_id:
-        query = query.filter(Transaction.category_id == category_id)
-    if merchant_id:
-        query = query.filter(Transaction.merchant_id == merchant_id)
-    if tag_id:
-        tagged_ids = select(transaction_tags.c.transaction_id).where(
-            transaction_tags.c.tag_id == tag_id
-        )
-        query = query.filter(Transaction.id.in_(tagged_ids))
-    if date_from:
-        query = query.filter(Transaction.transaction_date >= date_from)
-    if date_to:
-        query = query.filter(Transaction.transaction_date <= date_to)
-    if amount_min is not None:
-        query = query.filter(Transaction.amount >= amount_min)
-    if amount_max is not None:
-        query = query.filter(Transaction.amount <= amount_max)
-
+    query = _apply_filters(_build_base_query(db, current_user), params)
     query = query.order_by(Transaction.transaction_date.desc(), Transaction.id.desc())
 
-    if cursor:
-        cursor_date, cursor_id = _decode_cursor(cursor)
+    if params.cursor:
+        cursor_date, cursor_id = _decode_cursor(params.cursor)
         query = query.filter(
             or_(
                 Transaction.transaction_date < cursor_date,
@@ -228,11 +272,13 @@ def list_transactions(
             )
         )
 
-    results = query.limit(page_size + 1).all()
-    has_next = len(results) > page_size
-    items = results[:page_size]
+    results = query.limit(params.page_size + 1).all()
+    has_next = len(results) > params.page_size
+    items = results[: params.page_size]
     next_cursor = _encode_cursor(items[-1]) if has_next and items else None
-    return CursorTransactionListResponse(items=items, next_cursor=next_cursor, page_size=page_size)
+    return CursorTransactionListResponse(
+        items=items, next_cursor=next_cursor, page_size=params.page_size
+    )
 
 
 @router.post("/bulk-tag", status_code=status.HTTP_204_NO_CONTENT)
@@ -306,7 +352,7 @@ def update_transaction_category(
             )
 
     txn.category_id = body.category_id
-    txn.updated_at = datetime.now(timezone.utc)
+    txn.updated_at = datetime.now(UTC)
 
     audit = AuditLog(
         user_id=current_user.id,

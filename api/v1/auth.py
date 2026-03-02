@@ -172,9 +172,7 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)) ->
     now = _now_utc()
 
     reset_token = (
-        db.query(PasswordResetToken)
-        .filter(PasswordResetToken.token_hash == token_hash)
-        .first()
+        db.query(PasswordResetToken).filter(PasswordResetToken.token_hash == token_hash).first()
     )
 
     if reset_token is None:

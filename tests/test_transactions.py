@@ -511,8 +511,51 @@ class TestExportTransactions:
     def test_export_invalid_format_returns_400(
         self, client: TestClient, auth_headers: dict
     ) -> None:
-        response = client.get("/api/v1/transactions/export?format=json", headers=auth_headers)
+        response = client.get("/api/v1/transactions/export?format=xml", headers=auth_headers)
         assert response.status_code == 400
+        assert "csv" in response.json()["detail"]
+        assert "jsonl" in response.json()["detail"]
+
+    def test_export_jsonl_returns_200(
+        self, client: TestClient, auth_headers: dict, test_transactions
+    ) -> None:
+        response = client.get("/api/v1/transactions/export?format=jsonl", headers=auth_headers)
+        assert response.status_code == 200
+        assert "application/jsonl" in response.headers["content-type"]
+
+    def test_export_jsonl_row_count(
+        self, client: TestClient, auth_headers: dict, test_transactions
+    ) -> None:
+        response = client.get("/api/v1/transactions/export?format=jsonl", headers=auth_headers)
+        lines = [line for line in response.text.strip().split("\n") if line]
+        assert len(lines) == 3  # 3 transactions, pas de header
+
+    def test_export_jsonl_valid_json(
+        self, client: TestClient, auth_headers: dict, test_transactions
+    ) -> None:
+        import json
+
+        response = client.get("/api/v1/transactions/export?format=jsonl", headers=auth_headers)
+        lines = [line for line in response.text.strip().split("\n") if line]
+        for line in lines:
+            obj = json.loads(line)
+            assert "id" in obj
+            assert "amount" in obj
+            assert "transaction_date" in obj
+
+    def test_export_jsonl_respects_filters(
+        self, client: TestClient, auth_headers: dict, test_transactions
+    ) -> None:
+        import json
+
+        response = client.get(
+            "/api/v1/transactions/export?format=jsonl&date_from=2025-03-02&date_to=2025-03-02",
+            headers=auth_headers,
+        )
+        lines = [line for line in response.text.strip().split("\n") if line]
+        assert len(lines) == 1
+        obj = json.loads(lines[0])
+        assert float(obj["amount"]) == 1000.00
 
     def test_export_requires_auth(self, client: TestClient) -> None:
         response = client.get("/api/v1/transactions/export?format=csv")

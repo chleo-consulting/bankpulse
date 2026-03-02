@@ -104,7 +104,8 @@ api/v1/accounts_router.py — GET|POST /accounts, GET|PATCH|DELETE|import /accou
 api/v1/import_router.py   — POST /import/boursorama (import global multi-comptes)
 api/v1/categories_router.py — GET /categories (liste hiérarchique parents+enfants)
 api/v1/tags_router.py     — GET /tags, POST /tags (CRUD tags globaux)
-api/v1/transactions_router.py — GET /transactions (cursor-based, 7 filtres), GET /search, POST /bulk-tag, GET /export, PATCH /{id}/category
+schemas/transaction_filters.py — TransactionFilters (8 filtres communs), TransactionListParams (+ cursor + page_size)
+api/v1/transactions_router.py — GET /transactions (cursor-based, 8 filtres), GET /search, POST /bulk-tag, GET /export (csv|jsonl), PATCH /{id}/category — helpers : _filters_dep, _list_params_dep (Depends factories), _apply_filters, _generate_jsonl
 api/v1/dashboard_router.py — GET /dashboard/summary|categories-breakdown|top-merchants|recurring
 api/v1/budgets_router.py  — POST|GET /budgets, GET /budgets/progress, GET|PATCH|DELETE /budgets/{id}
 schemas/tags.py           — TagCreate, TagResponse

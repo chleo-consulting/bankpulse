@@ -279,9 +279,7 @@ def test_forgot_password_creates_reset_token_in_db(client: TestClient, db_sessio
     user = db_session.query(User).filter(User.email == "reset_db@example.com").first()
     assert user is not None
     reset_token = (
-        db_session.query(PasswordResetToken)
-        .filter(PasswordResetToken.user_id == user.id)
-        .first()
+        db_session.query(PasswordResetToken).filter(PasswordResetToken.user_id == user.id).first()
     )
     assert reset_token is not None
     assert reset_token.used_at is None
@@ -317,9 +315,7 @@ def test_forgot_password_invalidates_previous_tokens(client: TestClient, db_sess
 
     user = db_session.query(User).filter(User.email == "multi_reset@example.com").first()
     all_tokens = (
-        db_session.query(PasswordResetToken)
-        .filter(PasswordResetToken.user_id == user.id)
-        .all()
+        db_session.query(PasswordResetToken).filter(PasswordResetToken.user_id == user.id).all()
     )
     assert len(all_tokens) == 2
     used_tokens = [t for t in all_tokens if t.used_at is not None]

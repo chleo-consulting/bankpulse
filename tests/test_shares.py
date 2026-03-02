@@ -143,9 +143,7 @@ class TestInvite:
             )
         assert resp.status_code == 404
 
-    def test_invite_nonexistent_account_returns_404(
-        self, client: TestClient, owner_headers: dict
-    ):
+    def test_invite_nonexistent_account_returns_404(self, client: TestClient, owner_headers: dict):
         with patch("services.account_share_service.EmailService"):
             resp = client.post(
                 f"/api/v1/accounts/{uuid4()}/invite",
@@ -214,9 +212,7 @@ class TestListShares:
     ):
         _make_share(db_session, owner_account, owner, "a@example.com", "pending")
         _make_share(db_session, owner_account, owner, "b@example.com", "accepted")
-        resp = client.get(
-            f"/api/v1/accounts/{owner_account.id}/shares", headers=owner_headers
-        )
+        resp = client.get(f"/api/v1/accounts/{owner_account.id}/shares", headers=owner_headers)
         assert resp.status_code == 200
         assert len(resp.json()) == 2
 
@@ -230,9 +226,7 @@ class TestListShares:
     ):
         _make_share(db_session, owner_account, owner, "c@example.com", "rejected")
         _make_share(db_session, owner_account, owner, "d@example.com", "revoked")
-        resp = client.get(
-            f"/api/v1/accounts/{owner_account.id}/shares", headers=owner_headers
-        )
+        resp = client.get(f"/api/v1/accounts/{owner_account.id}/shares", headers=owner_headers)
         assert resp.status_code == 200
         assert len(resp.json()) == 0
 
@@ -242,9 +236,7 @@ class TestListShares:
         owner_account: BankAccount,
         invitee_headers: dict,
     ):
-        resp = client.get(
-            f"/api/v1/accounts/{owner_account.id}/shares", headers=invitee_headers
-        )
+        resp = client.get(f"/api/v1/accounts/{owner_account.id}/shares", headers=invitee_headers)
         assert resp.status_code == 404
 
     def test_list_shares_unauthenticated_returns_401(
@@ -380,9 +372,7 @@ class TestAcceptByToken:
         owner: User,
         invitee: User,
     ):
-        share, raw_token = _make_share(
-            db_session, owner_account, owner, invitee.email, "pending"
-        )
+        share, raw_token = _make_share(db_session, owner_account, owner, invitee.email, "pending")
         client.post(f"/api/v1/invitations/accept/{raw_token}")
         db_session.refresh(share)
         assert share.invitee_user_id == invitee.id
@@ -449,9 +439,7 @@ class TestAcceptById:
         invitee_headers: dict,
     ):
         share, _ = _make_share(db_session, owner_account, owner, invitee.email, "pending")
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/accept", headers=invitee_headers
-        )
+        resp = client.post(f"/api/v1/invitations/{share.id}/accept", headers=invitee_headers)
         assert resp.status_code == 200
         assert resp.json()["status"] == "accepted"
 
@@ -478,12 +466,8 @@ class TestAcceptById:
         owner_headers: dict,
     ):
         # owner tente d'accepter une invitation destinée à quelqu'un d'autre
-        share, _ = _make_share(
-            db_session, owner_account, owner, "other@example.com", "pending"
-        )
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/accept", headers=owner_headers
-        )
+        share, _ = _make_share(db_session, owner_account, owner, "other@example.com", "pending")
+        resp = client.post(f"/api/v1/invitations/{share.id}/accept", headers=owner_headers)
         assert resp.status_code == 403
 
     def test_accept_by_id_already_accepted_returns_400(
@@ -495,12 +479,8 @@ class TestAcceptById:
         invitee: User,
         invitee_headers: dict,
     ):
-        share, _ = _make_share(
-            db_session, owner_account, owner, invitee.email, "accepted"
-        )
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/accept", headers=invitee_headers
-        )
+        share, _ = _make_share(db_session, owner_account, owner, invitee.email, "accepted")
+        resp = client.post(f"/api/v1/invitations/{share.id}/accept", headers=invitee_headers)
         assert resp.status_code == 400
 
     def test_accept_by_id_expired_returns_400(
@@ -515,9 +495,7 @@ class TestAcceptById:
         share, _ = _make_share(
             db_session, owner_account, owner, invitee.email, "pending", days_offset=-1
         )
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/accept", headers=invitee_headers
-        )
+        resp = client.post(f"/api/v1/invitations/{share.id}/accept", headers=invitee_headers)
         assert resp.status_code == 400
 
     def test_accept_by_id_unauthenticated_returns_401(
@@ -544,9 +522,7 @@ class TestRejectInvitation:
         invitee_headers: dict,
     ):
         share, _ = _make_share(db_session, owner_account, owner, invitee.email, "pending")
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/reject", headers=invitee_headers
-        )
+        resp = client.post(f"/api/v1/invitations/{share.id}/reject", headers=invitee_headers)
         assert resp.status_code == 200
 
     def test_reject_sets_status_rejected(
@@ -571,12 +547,8 @@ class TestRejectInvitation:
         owner: User,
         owner_headers: dict,
     ):
-        share, _ = _make_share(
-            db_session, owner_account, owner, "other@example.com", "pending"
-        )
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/reject", headers=owner_headers
-        )
+        share, _ = _make_share(db_session, owner_account, owner, "other@example.com", "pending")
+        resp = client.post(f"/api/v1/invitations/{share.id}/reject", headers=owner_headers)
         assert resp.status_code == 403
 
     def test_reject_already_rejected_returns_400(
@@ -588,12 +560,8 @@ class TestRejectInvitation:
         invitee: User,
         invitee_headers: dict,
     ):
-        share, _ = _make_share(
-            db_session, owner_account, owner, invitee.email, "rejected"
-        )
-        resp = client.post(
-            f"/api/v1/invitations/{share.id}/reject", headers=invitee_headers
-        )
+        share, _ = _make_share(db_session, owner_account, owner, invitee.email, "rejected")
+        resp = client.post(f"/api/v1/invitations/{share.id}/reject", headers=invitee_headers)
         assert resp.status_code == 400
 
     def test_reject_unauthenticated_returns_401(
@@ -651,9 +619,7 @@ class TestListInvitations:
         invitee: User,
         invitee_headers: dict,
     ):
-        _make_share(
-            db_session, owner_account, owner, invitee.email, "pending", days_offset=-1
-        )
+        _make_share(db_session, owner_account, owner, invitee.email, "pending", days_offset=-1)
         resp = client.get("/api/v1/invitations", headers=invitee_headers)
         assert resp.status_code == 200
         assert len(resp.json()) == 0

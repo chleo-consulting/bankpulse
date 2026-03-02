@@ -75,9 +75,7 @@ def _build_reset_email_html(reset_url: str) -> str:
 </html>"""
 
 
-def _build_share_invitation_html(
-    inviter_name: str, account_name: str, invitation_url: str
-) -> str:
+def _build_share_invitation_html(inviter_name: str, account_name: str, invitation_url: str) -> str:
     expire_days = settings.SHARE_INVITATION_EXPIRE_DAYS
     return f"""<!DOCTYPE html>
 <html lang="fr">

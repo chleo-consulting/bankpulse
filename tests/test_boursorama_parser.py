@@ -62,9 +62,7 @@ class TestBoursoramaCsvParserParsing:
         amazon_txn = next(t for t in acc1.transactions if "Amazon" in t.description)
         assert amazon_txn.amount == Decimal("-29.99")
 
-    def test_transaction_amount_with_thousands_separator(
-        self, parser: BoursoramaCsvParser
-    ) -> None:
+    def test_transaction_amount_with_thousands_separator(self, parser: BoursoramaCsvParser) -> None:
         result = parser.parse(THOUSANDS_CSV)
         assert result.accounts[0].transactions[0].amount == Decimal("2000.00")
 

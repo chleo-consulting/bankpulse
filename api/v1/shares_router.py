@@ -75,10 +75,10 @@ def invite_user(
     except ValueError as exc:
         msg = str(exc)
         if "introuvable" in msg:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg) from exc
         if "déjà en attente" in msg:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=msg)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=msg) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg) from exc
 
     # Charger les relations pour la réponse
     db.refresh(share, attribute_names=["account", "owner"])
@@ -129,8 +129,8 @@ def revoke_share(
     except ValueError as exc:
         msg = str(exc)
         if "introuvable" in msg:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +161,7 @@ def accept_by_token(
     try:
         service.accept_by_token(token=token)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return MessageResponse(message="Invitation acceptée avec succès.")
 
 
@@ -176,11 +176,11 @@ def accept_by_id(
     try:
         share = service.accept_by_id(share_id=share_id, user=current_user)
     except LookupError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PermissionError as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     db.refresh(share, attribute_names=["account", "owner"])
     return _share_to_response(share)
@@ -197,9 +197,9 @@ def reject_invitation(
     try:
         service.reject(share_id=share_id, user=current_user)
     except LookupError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PermissionError as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return MessageResponse(message="Invitation refusée.")

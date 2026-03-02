@@ -93,9 +93,7 @@ def list_accounts(
             updated_at=account.updated_at,
             is_shared=True,
             shared_by_email=owner.email,
-            shared_by_name=(
-                f"{owner.first_name or ''} {owner.last_name or ''}".strip() or None
-            ),
+            shared_by_name=(f"{owner.first_name or ''} {owner.last_name or ''}".strip() or None),
         )
         for _, account, owner in shared_rows
     ]

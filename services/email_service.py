@@ -116,7 +116,7 @@ def _build_share_invitation_html(
                    style="display:inline-block;background:#4f46e5;color:#ffffff;
                           padding:12px 24px;border-radius:6px;text-decoration:none;
                           font-weight:600;font-size:15px;">
-                  Voir l'invitation
+                  Accepter le partage d'accès
                 </a>
               </p>
               <p style="margin:0 0 16px;color:#6b7280;font-size:13px;line-height:1.5;">

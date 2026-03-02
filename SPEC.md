@@ -66,6 +66,8 @@ Backend: FastAPI + SQLAlchemy 2.0 + PostgreSQL (psycopg2-binary, python-jose, bc
 Frontend: Next.js 16 + App Router + shadcn/ui v3 + Tailwind v4 + Recharts\
 Auth: JWT (python-jose) + bcrypt — cookies HttpOnly, refresh tokens stateless\
 Import: Parser CSV pluggable (`parsers/`) — Boursorama v1 (livré), Crédit Agricole / BNP à venir\
+Email: Resend SDK — réinitialisation de mot de passe + invitations partage de comptes\
+Partage: `AccountShare` model — invitation token email, accept/reject/revoke, `BankAccountListResponse` (is_shared)\
 Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
 
 ## 2. 👤 Personas
@@ -180,12 +182,13 @@ Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
 
 ## 7. 🗺 Roadmap Produit
 
-### Phase 1 --- MVP
+### Phase 1 --- MVP ✅ LIVRÉE
 
--   Dashboard
--   Transactions
--   Catégorisation
--   Budgets
+-   Dashboard ✅
+-   Transactions ✅
+-   Catégorisation ✅
+-   Budgets ✅
+-   Partage de Comptes ✅ (invitation email, accept/reject, révocation)
 
 ### Phase 2 --- Intelligence
 

@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Building2, MoreVertical, Plus, Trash2, Upload } from "lucide-react"
+import { Building2, MoreVertical, Plus, Trash2, Upload, UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
 
 import { EmptyState } from "@/components/shared/empty-state"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -15,10 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatAmount, formatDate } from "@/lib/format"
-import type { BankAccountResponse } from "@/types/api"
+import type { AccountShareResponse, BankAccountListResponse, BankAccountResponse } from "@/types/api"
 
 import { AddAccountModal } from "./add-account-modal"
 import { ImportCSVModal } from "./import-csv-modal"
+import { InviteModal } from "./invite-modal"
+import { SharesModal } from "./shares-modal"
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   checking: "Compte courant",
@@ -28,21 +31,36 @@ const ACCOUNT_TYPE_LABELS: Record<string, string> = {
 }
 
 interface AccountsListProps {
-  initialAccounts: BankAccountResponse[]
+  initialAccounts: BankAccountListResponse[]
 }
 
 export function AccountsList({ initialAccounts }: AccountsListProps) {
-  const [accounts, setAccounts] = useState<BankAccountResponse[]>(initialAccounts)
+  const [accounts, setAccounts] = useState<BankAccountListResponse[]>(initialAccounts)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [importAccountId, setImportAccountId] = useState<string | null>(null)
+  const [inviteAccountId, setInviteAccountId] = useState<string | null>(null)
+  const [sharesAccountId, setSharesAccountId] = useState<string | null>(null)
 
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
   const importAccount = importAccountId
     ? (accounts.find((a) => a.id === importAccountId) ?? null)
     : null
+  const inviteAccount = inviteAccountId
+    ? (accounts.find((a) => a.id === inviteAccountId) ?? null)
+    : null
+  const sharesAccount = sharesAccountId
+    ? (accounts.find((a) => a.id === sharesAccountId) ?? null)
+    : null
 
+  // AddAccountModal retourne BankAccountResponse — on enrichit avec les champs is_shared
   function handleAccountAdded(account: BankAccountResponse) {
-    setAccounts((prev) => [...prev, account])
+    const enriched: BankAccountListResponse = {
+      ...account,
+      is_shared: false,
+      shared_by_email: null,
+      shared_by_name: null,
+    }
+    setAccounts((prev) => [...prev, enriched])
   }
 
   async function handleDelete(id: string) {
@@ -99,6 +117,8 @@ export function AccountsList({ initialAccounts }: AccountsListProps) {
               account={account}
               onImport={() => setImportAccountId(account.id)}
               onDelete={() => handleDelete(account.id)}
+              onInvite={() => setInviteAccountId(account.id)}
+              onManageShares={() => setSharesAccountId(account.id)}
             />
           ))}
         </div>
@@ -117,6 +137,25 @@ export function AccountsList({ initialAccounts }: AccountsListProps) {
           if (!open) setImportAccountId(null)
         }}
       />
+
+      <InviteModal
+        open={!!inviteAccountId}
+        onOpenChange={(open) => {
+          if (!open) setInviteAccountId(null)
+        }}
+        accountId={inviteAccountId ?? ""}
+        accountName={inviteAccount?.account_name ?? null}
+        onSuccess={(_share: AccountShareResponse) => {}}
+      />
+
+      <SharesModal
+        open={!!sharesAccountId}
+        onOpenChange={(open) => {
+          if (!open) setSharesAccountId(null)
+        }}
+        accountId={sharesAccountId ?? ""}
+        accountName={sharesAccount?.account_name ?? null}
+      />
     </div>
   )
 }
@@ -125,10 +164,14 @@ function AccountCard({
   account,
   onImport,
   onDelete,
+  onInvite,
+  onManageShares,
 }: {
-  account: BankAccountResponse
+  account: BankAccountListResponse
   onImport: () => void
   onDelete: () => void
+  onInvite: () => void
+  onManageShares: () => void
 }) {
   const typeLabel = account.account_type
     ? (ACCOUNT_TYPE_LABELS[account.account_type] ?? account.account_type)
@@ -143,11 +186,29 @@ function AccountCard({
               <Building2 size={20} className="text-indigo-600" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-gray-900 truncate">
-                {account.account_name ?? "Compte sans nom"}
-              </h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-gray-900 truncate">
+                  {account.account_name ?? "Compte sans nom"}
+                </h3>
+                {account.is_shared && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-blue-300 text-blue-700 bg-blue-50 shrink-0"
+                  >
+                    Partagé avec moi
+                  </Badge>
+                )}
+              </div>
               {account.iban && (
                 <p className="text-sm font-mono text-gray-500 mt-0.5 truncate">{account.iban}</p>
+              )}
+              {account.is_shared && account.shared_by_email && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Partagé par{" "}
+                  {account.shared_by_name
+                    ? `${account.shared_by_name} (${account.shared_by_email})`
+                    : account.shared_by_email}
+                </p>
               )}
             </div>
           </div>
@@ -167,6 +228,15 @@ function AccountCard({
                 <DropdownMenuItem onClick={onImport}>
                   <Upload size={14} className="mr-2" />
                   Importer CSV
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onInvite} disabled={account.is_shared}>
+                  <UserPlus size={14} className="mr-2" />
+                  Partager
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onManageShares} disabled={account.is_shared}>
+                  <Users size={14} className="mr-2" />
+                  Gérer les partages
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

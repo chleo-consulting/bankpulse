@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
 **Date** : 2 mars 2026
-**Statut** : MVP livré (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ + feature reset-password ✅ + feature import multi-banque ✅)
+**Statut** : MVP livré (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ + feature reset-password ✅ + feature import multi-banque ✅ + feature partage de comptes ✅)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -17,6 +17,7 @@
 > Phase 7 livrée : Budgets — KPI cards résumé, BudgetProgressCard (progress bar + alertes over/near_limit + jours restants), navigation mensuelle (prev/next via URL), modal créer/éditer budget, suppression — `app/(dashboard)/budgets/page.tsx` · `components/budgets/budgets-list.tsx` · `components/budgets/budget-progress-card.tsx` · `components/budgets/budget-modal.tsx` · `app/api/budgets/*`
 > Phase 8 livrée : Polish — 4 loading skeletons (auto-Suspense App Router), page Paramètres (3 onglets) — `app/(dashboard)/*/loading.tsx` · `app/(dashboard)/settings/page.tsx` · `components/settings/settings-tabs.tsx`
 > Feature import multi-banque livrée : page `/import` wizard 3 étapes (sélection banque → upload CSV → résultats), route handler dynamique `/api/import/[format]`, config `IMPORT_FORMATS` avec flag `available` — `app/(dashboard)/import/page.tsx` · `app/api/import/[format]/route.ts` · `components/import/import-wizard.tsx` · `format-selector.tsx` · `file-upload-step.tsx` · `import-result-view.tsx`
+> Feature partage de comptes livrée : `InviteModal` (email input, POST invite), `SharesModal` (liste partages + révocation, badges status), page `/invitations` (invitations reçues, accept/reject), page publique `/invitations/[token]` (lien email token, auto-accept au montage), badge sidebar "Invitations" avec compteur pending, `BankAccountListResponse` (is_shared + badge "Partagé avec moi" sur AccountCard), proxy.ts updated (`/invitations/` dans IGNORED_PREFIXES) — `components/accounts/invite-modal.tsx` · `shares-modal.tsx` · `components/invitations/invitations-list.tsx` · `app/(dashboard)/invitations/page.tsx` · `app/invitations/[token]/page.tsx` · route handlers `/api/accounts/[id]/shares/*` · `/api/invitations/*`
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
@@ -606,6 +607,8 @@ function DashboardSkeleton() {
 - [x] Réinitialisation de mot de passe (reset-password)
 - [x] Paramètres (profil, sécurité)
 - [x] Import multi-banque (wizard 3 étapes — Boursorama actif, BNP/CA/LCL/SG "bientôt disponible")
+- [x] Invitations reçues (/invitations — accept/reject, badge sidebar pending count)
+- [x] Acceptation lien email (/invitations/[token] — page publique sans auth, spinner→succès/erreur)
 
 ### Composants Réutilisables
 - [x] KPICard
@@ -617,6 +620,9 @@ function DashboardSkeleton() {
 - [x] BudgetProgressCard
 - [x] EmptyState
 - [x] Skeleton loaders
+- [x] InviteModal (components/accounts/invite-modal.tsx)
+- [x] SharesModal (components/accounts/shares-modal.tsx)
+- [x] InvitationsList (components/invitations/invitations-list.tsx)
 
 ### Interactions
 - [x] Hover states (sidebar, buttons, links) — `hover:bg-gray-700`, `hover:text-white`, shadcn variants
@@ -636,4 +642,4 @@ function DashboardSkeleton() {
 
 **Frontend MVP complet. Prêt pour beta-test. 🚀**
 
-Toutes les pages et composants de l'Étape 8 sont livrés. Prochaine étape : tests end-to-end, endpoint profil `/users/me` backend.
+Toutes les pages et composants sont livrés (Étape 8 + features reset-password, import multi-banque, partage de comptes). Prochaine étape : tests end-to-end, endpoint profil `/users/me` backend.

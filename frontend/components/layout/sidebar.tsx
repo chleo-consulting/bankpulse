@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import type { ElementType } from "react"
+import { useEffect, useState, type ElementType } from "react"
 import {
   ArrowLeftRight,
+  Bell,
   CreditCard,
   LayoutDashboard,
   Settings,
@@ -15,6 +16,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import type { ReceivedInvitationResponse } from "@/types/api"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -22,18 +24,34 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/budgets", label: "Budgets", icon: Target },
   { href: "/import", label: "Importer", icon: Upload },
+  { href: "/invitations", label: "Invitations", icon: Bell, showBadge: true },
 ]
+
+function usePendingCount(): number {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    fetch("/api/invitations")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: ReceivedInvitationResponse[]) => {
+        setCount(data.filter((inv) => inv.status === "pending").length)
+      })
+      .catch(() => {})
+  }, [])
+  return count
+}
 
 function NavItem({
   href,
   label,
   icon: Icon,
   showLabel,
+  badgeCount,
 }: {
   href: string
   label: string
   icon: ElementType
   showLabel: boolean
+  badgeCount?: number
 }) {
   const pathname = usePathname()
   const isActive = pathname === href || pathname.startsWith(`${href}/`)
@@ -44,14 +62,21 @@ function NavItem({
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg mx-2 transition-colors",
         "text-gray-300 hover:bg-gray-700 hover:text-white",
-        isActive && "bg-primary-600 text-white hover:bg-primary-600"
+        isActive && "bg-primary-600 text-white hover:bg-primary-600",
       )}
     >
-      <Icon className="size-5 shrink-0" />
+      <div className="relative shrink-0">
+        <Icon className="size-5" />
+        {badgeCount !== undefined && badgeCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            {badgeCount > 9 ? "9+" : badgeCount}
+          </span>
+        )}
+      </div>
       <span
         className={cn(
           "text-sm font-medium whitespace-nowrap transition-opacity duration-200",
-          showLabel ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          showLabel ? "opacity-100" : "opacity-0 group-hover:opacity-100",
         )}
       >
         {label}
@@ -71,7 +96,7 @@ function UserNavItem({ showLabel }: { showLabel: boolean }) {
       <span
         className={cn(
           "text-sm text-gray-300 whitespace-nowrap transition-opacity duration-200",
-          showLabel ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          showLabel ? "opacity-100" : "opacity-0 group-hover:opacity-100",
         )}
       >
         Utilisateur
@@ -81,6 +106,8 @@ function UserNavItem({ showLabel }: { showLabel: boolean }) {
 }
 
 function SidebarContent({ showLabel = false }: { showLabel?: boolean }) {
+  const pendingCount = usePendingCount()
+
   return (
     <>
       {/* Logo */}
@@ -91,7 +118,7 @@ function SidebarContent({ showLabel = false }: { showLabel?: boolean }) {
         <span
           className={cn(
             "text-white font-semibold text-lg whitespace-nowrap transition-opacity duration-200",
-            showLabel ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            showLabel ? "opacity-100" : "opacity-0 group-hover:opacity-100",
           )}
         >
           BankPulse
@@ -103,7 +130,14 @@ function SidebarContent({ showLabel = false }: { showLabel?: boolean }) {
       {/* Navigation principale */}
       <nav className="flex-1 py-4 space-y-1">
         {navItems.map((item) => (
-          <NavItem key={item.href} {...item} showLabel={showLabel} />
+          <NavItem
+            key={item.href}
+            href={item.href}
+            label={item.label}
+            icon={item.icon}
+            showLabel={showLabel}
+            badgeCount={item.showBadge ? pendingCount : undefined}
+          />
         ))}
       </nav>
 
@@ -124,7 +158,7 @@ export function Sidebar() {
       className={cn(
         "fixed left-0 top-0 z-50 h-screen w-16 overflow-hidden",
         "transition-all duration-200 hover:w-60 group",
-        "bg-[#1f2937] border-r border-[#374151] flex flex-col"
+        "bg-[#1f2937] border-r border-[#374151] flex flex-col",
       )}
     >
       <SidebarContent />

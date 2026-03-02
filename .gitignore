@@ -32,3 +32,6 @@ venv.bak/
 
 # Local files
 *.local.*
+
+# Import csv files 
+import/csv/

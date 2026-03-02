@@ -96,6 +96,12 @@ export interface BankAccountResponse {
   updated_at: string
 }
 
+export interface BankAccountListResponse extends BankAccountResponse {
+  is_shared: boolean
+  shared_by_email: string | null
+  shared_by_name: string | null
+}
+
 export interface AccountImportSummary {
   account_num: string
   account_label: string
@@ -180,6 +186,30 @@ export interface BudgetProgressItem {
 export interface BudgetsProgress {
   month: string | null
   items: BudgetProgressItem[]
+}
+
+// Partage de Comptes
+export interface AccountShareResponse {
+  id: string
+  account_id: string
+  account_name: string | null
+  invitee_email: string
+  invitee_user_id: string | null
+  status: "pending" | "accepted" | "rejected" | "revoked"
+  created_at: string
+  expires_at: string
+  responded_at: string | null
+}
+
+export interface ReceivedInvitationResponse {
+  id: string
+  account_id: string
+  account_name: string | null
+  owner_email: string
+  owner_name: string | null
+  status: "pending" | "accepted" | "rejected" | "revoked"
+  expires_at: string
+  created_at: string
 }
 
 // Mot de passe oublié

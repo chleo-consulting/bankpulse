@@ -21,6 +21,7 @@ const routeLabels: Record<string, string> = {
   budgets: "Budgets",
   settings: "Paramètres",
   import: "Importer",
+  invitations: "Invitations",
 }
 
 function Breadcrumbs() {

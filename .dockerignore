@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.venv
+.uv
+
+# Tests
+tests/
+pytest.ini
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docs
+*.md
+PLAN_*.md
+
+# Frontend (service séparé)
+frontend/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editeur
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile
+docker-compose*.yml

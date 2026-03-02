@@ -71,7 +71,7 @@ Auth: JWT (python-jose) + bcrypt — cookies HttpOnly, refresh tokens stateless\
 Import: Parser CSV pluggable (`parsers/`) — Boursorama v1 (livré), Crédit Agricole / BNP à venir\
 Email: Resend SDK — réinitialisation de mot de passe + invitations partage de comptes\
 Partage: `AccountShare` model — invitation token email, accept/reject/revoke, `BankAccountListResponse` (is_shared)\
-Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
+Infra: Docker + Railway (backend service + frontend service + PostgreSQL plugin) · CI GitHub Actions (ruff/black/pytest + bun build) · CORSMiddleware (`ALLOWED_ORIGINS`) · `start.sh` (alembic upgrade head → uvicorn `$PORT`) · frontend `output: standalone` · pas de stockage fichier — CSV parsé en mémoire
 
 ## 2. 👤 Personas
 

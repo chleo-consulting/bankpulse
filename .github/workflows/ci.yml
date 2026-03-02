@@ -7,7 +7,8 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  backend:
+    name: Backend — lint + tests
     runs-on: ubuntu-latest
 
     services:
@@ -32,6 +33,7 @@ jobs:
       RESEND_API_KEY: re_fake_key_ci
       FRONTEND_URL: http://localhost:3000
       PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: 30
+      ALLOWED_ORIGINS: http://localhost:3000
 
     steps:
       - uses: actions/checkout@v4
@@ -62,3 +64,27 @@ jobs:
 
       - name: Tests
         run: uv run pytest --tb=short
+
+  frontend:
+    name: Frontend — build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Installer les dépendances
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000

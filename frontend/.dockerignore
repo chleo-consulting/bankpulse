@@ -1,0 +1,21 @@
+# Dépendances
+node_modules/
+
+# Build Next.js
+.next/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Docs
+README.md
+*.md
+
+# Editeur
+.vscode/
+.idea/
+
+# Docker
+Dockerfile

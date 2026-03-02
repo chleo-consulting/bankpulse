@@ -5,6 +5,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN pip install uv
 
+RUN useradd --create-home --shell /bin/bash app
+
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
@@ -12,6 +14,9 @@ RUN uv sync --frozen --no-dev
 
 COPY . .
 
+RUN chown -R app:app /app
+USER app
+
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["bash", "start.sh"]

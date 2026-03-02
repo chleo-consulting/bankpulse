@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement **backend**
 
-**Statut** : MVP Phase 1 livré + feature reset-password + feature import-multibank + feature partage-comptes | **Date** : 2 mars 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
+**Statut** : MVP Phase 1 livré + feature reset-password + feature import-multibank + feature partage-comptes + feature railway-ci-cd | **Date** : 2 mars 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
 
 ---
 
@@ -69,7 +69,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ### Étape 2 — Authentification (Auth API) ✅ LIVRÉE
 
-> Coverage : 97.97% (249 tests) | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout` · `/auth/forgot-password` · `/auth/reset-password` | Migration : `11ad90472e66_add_password_reset_tokens`
+> Coverage : 97.97% (249 tests) | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout` · `GET /auth/me` · `/auth/forgot-password` · `/auth/reset-password` | Migration : `11ad90472e66_add_password_reset_tokens`
 
 **Objectif** : Un utilisateur peut s'inscrire, se connecter, et ses requêtes sont sécurisées par JWT.
 
@@ -298,7 +298,7 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 ### Feature Import Multi-banque ✅ LIVRÉE
 
-> Coverage : 97.96% (252 tests) | Endpoints backend : `POST /import/boursorama` (existant, réutilisé) | Frontend : page `/import` wizard 3 étapes
+> Coverage : 97.96% (254 tests) | Endpoints backend : `POST /import/boursorama` (existant, réutilisé) | Frontend : page `/import` wizard 3 étapes
 
 **Objectif** : L'utilisateur peut importer un CSV depuis une page dédiée, avec sélection de la banque et progression visuelle.
 
@@ -330,7 +330,7 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 ### Feature Partage de Comptes ✅ LIVRÉE
 
-> Coverage : 97.96% (252 tests) | Migration : `a1b2c3d4e5f6_add_account_shares`
+> Coverage : 97.96% (254 tests) | Migration : `a1b2c3d4e5f6_add_account_shares`
 
 **Objectif** : Un utilisateur peut partager un ou plusieurs de ses comptes avec un autre utilisateur. L'invité accepte ou refuse compte par compte. Une fois accepté, le compte apparaît dans la liste des deux utilisateurs.
 
@@ -363,6 +363,42 @@ Index : token_hash, invitee_email, account_id, invitee_user_id + index partiel P
 Setting ajouté : `SHARE_INVITATION_EXPIRE_DAYS = 7` dans `core/config.py`
 
 Service email : `EmailService.send_account_share_invitation()` — lien `FRONTEND_URL/invitations/{token}`
+
+---
+
+### Feature CI/CD Railway ✅ LIVRÉE
+
+> Coverage : 97.96% (254 tests)
+
+**Objectif** : Déploiement production sur Railway (backend + frontend) avec CI GitHub Actions.
+
+#### Fichiers créés
+
+| Fichier | Rôle |
+|---------|------|
+| `start.sh` | Lance `alembic upgrade head` puis `uvicorn` sur `$PORT` |
+| `.dockerignore` | Exclut tests/, frontend/, .env, __pycache__, etc. |
+| `railway.toml` | Backend : builder Dockerfile, healthcheck `/health`, restart ON_FAILURE |
+| `frontend/Dockerfile` | 3 stages : deps (bun install) → builder (bun run build) → runner (node server.js) |
+| `frontend/.dockerignore` | Exclut node_modules/, .next/, .env*, etc. |
+| `frontend/railway.toml` | Frontend : builder Dockerfile, healthcheck `/` |
+
+#### Fichiers modifiés
+
+| Fichier | Modification |
+|---------|-------------|
+| `Dockerfile` | User non-root `app`, `CMD ["bash", "start.sh"]` |
+| `main.py` | `CORSMiddleware` avec `settings.ALLOWED_ORIGINS` |
+| `core/config.py` | `ALLOWED_ORIGINS: list[str]` + `field_validator` CSV parser |
+| `.env.example` | `ALLOWED_ORIGINS=http://localhost:3000` |
+| `frontend/next.config.ts` | `output: 'standalone'` (requis pour build Docker multi-stage) |
+| `.github/workflows/ci.yml` | Job `frontend` ajouté (bun install + build) + `ALLOWED_ORIGINS` env |
+
+#### Variables d'environnement Railway
+
+**Backend service** : `DATABASE_URL` (auto via plugin PostgreSQL) · `SECRET_KEY` · `RESEND_API_KEY` · `FRONTEND_URL` · `ALLOWED_ORIGINS` · `DEBUG=false`
+
+**Frontend service** : `NEXT_PUBLIC_API_URL`
 
 ---
 

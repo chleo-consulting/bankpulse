@@ -10,6 +10,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 
 const registerSchema = z.object({
   first_name: z.string().min(1, "Prénom requis"),
@@ -117,7 +118,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>Mot de passe</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Minimum 8 caractères" {...field} />
+                    <PasswordInput placeholder="Minimum 8 caractères" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

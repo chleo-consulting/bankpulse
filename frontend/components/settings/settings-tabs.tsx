@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 
@@ -100,16 +101,16 @@ export function SettingsTabs() {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="current_password">Mot de passe actuel</Label>
-              <Input id="current_password" type="password" disabled placeholder="••••••••" />
+              <PasswordInput id="current_password" disabled placeholder="••••••••" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="new_password">Nouveau mot de passe</Label>
-              <Input id="new_password" type="password" disabled placeholder="••••••••" />
+              <PasswordInput id="new_password" disabled placeholder="••••••••" />
               <p className="text-xs text-gray-500">Minimum 8 caractères.</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="confirm_password">Confirmer le nouveau mot de passe</Label>
-              <Input id="confirm_password" type="password" disabled placeholder="••••••••" />
+              <PasswordInput id="confirm_password" disabled placeholder="••••••••" />
             </div>
             <Button disabled variant="outline" className="w-full sm:w-auto">
               Changer le mot de passe

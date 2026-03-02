@@ -10,7 +10,7 @@ import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 
 const resetPasswordSchema = z
   .object({
@@ -78,7 +78,7 @@ function ResetPasswordForm() {
             <FormItem>
               <FormLabel>Nouveau mot de passe</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="8 caractères minimum" {...field} />
+                <PasswordInput placeholder="8 caractères minimum" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,7 +92,7 @@ function ResetPasswordForm() {
             <FormItem>
               <FormLabel>Confirmer le mot de passe</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <PasswordInput placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

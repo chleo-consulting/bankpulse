@@ -452,3 +452,35 @@ def test_forgot_password_creates_audit_log(client: TestClient, db_session):
         .first()
     )
     assert log is not None
+
+
+# ---------------------------------------------------------------------------
+# GET /auth/me
+# ---------------------------------------------------------------------------
+
+
+def _auth_header(client: TestClient, email: str = "me@example.com", password: str = "Secret123!"):
+    client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": password, "first_name": "Alice", "last_name": "Martin"},
+    )
+    resp = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    token = resp.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_get_me_returns_user_profile(client: TestClient):
+    headers = _auth_header(client)
+    resp = client.get("/api/v1/auth/me", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["email"] == "me@example.com"
+    assert data["first_name"] == "Alice"
+    assert data["last_name"] == "Martin"
+    assert "id" in data
+    assert "password_hash" not in data
+
+
+def test_get_me_unauthenticated_returns_401(client: TestClient):
+    resp = client.get("/api/v1/auth/me")
+    assert resp.status_code == 401

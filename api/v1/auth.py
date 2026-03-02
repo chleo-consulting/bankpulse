@@ -7,6 +7,7 @@ from jose import JWTError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from api.deps import get_current_user
 from core.config import settings
 from core.database import get_db
 from core.security import (
@@ -109,6 +110,12 @@ def refresh(body: RefreshRequest) -> TokenResponse:
 def logout() -> None:
     """Invalide le refresh token côté client (stateless MVP)."""
     return None
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)) -> User:
+    """Retourne le profil de l'utilisateur authentifié."""
+    return current_user
 
 
 @router.post("/forgot-password", response_model=MessageResponse)

@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { LogOutIcon, MenuIcon, UserIcon } from "lucide-react"
+import { ChevronDownIcon, LogOutIcon, MenuIcon, UserIcon } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/useAuth"
+import { useUser } from "@/hooks/useUser"
 
 const routeLabels: Record<string, string> = {
   dashboard: "Dashboard",
@@ -49,16 +50,40 @@ function Breadcrumbs() {
 
 function UserMenu() {
   const { logout, isLoggingOut } = useAuth()
+  const { user } = useUser()
+
+  const initials = user
+    ? user.first_name && user.last_name
+      ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+      : user.email.slice(0, 2).toUpperCase()
+    : "…"
+
+  const displayName =
+    user?.first_name || user?.last_name
+      ? `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()
+      : user?.email ?? ""
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-          <Avatar className="size-8">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 h-auto px-2 py-1 rounded-lg"
+        >
+          <Avatar className="size-8 shrink-0">
             <AvatarFallback className="bg-primary-600 text-white text-xs font-medium">
-              U
+              {initials}
             </AvatarFallback>
           </Avatar>
+          <div className="hidden sm:flex flex-col items-start text-left max-w-[160px]">
+            <span className="text-sm font-medium text-gray-900 leading-tight truncate w-full">
+              {displayName}
+            </span>
+            <span className="text-xs text-gray-500 leading-tight truncate w-full">
+              {user?.email}
+            </span>
+          </div>
+          <ChevronDownIcon className="size-4 text-gray-400 hidden sm:block shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

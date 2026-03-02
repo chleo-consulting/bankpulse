@@ -1,7 +1,7 @@
 # BankPulse - UI Layout Design : Option "Sidebar Collapsed"
 
-**Date** : 27 février 2026
-**Statut** : MVP livré (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ + feature reset-password ✅)
+**Date** : 2 mars 2026
+**Statut** : MVP livré (Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 ✅ + Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ + Phase 8 ✅ + feature reset-password ✅ + feature import multi-banque ✅)
 **Philosophie** : Interface ultra-compacte, focus maximal sur les données, idéale pour Power Users
 
 ---
@@ -16,6 +16,7 @@
 > Phase 6 livrée : Transactions — filtres 8 critères (compte, catégorie, tag, dates, montants, recherche), table avec checkbox sélection, category select inline, bulk-tag modal, export CSV, pagination cursor prev/next — `app/(dashboard)/transactions/page.tsx` · `components/transactions/transactions-list.tsx` · `app/api/transactions/*`
 > Phase 7 livrée : Budgets — KPI cards résumé, BudgetProgressCard (progress bar + alertes over/near_limit + jours restants), navigation mensuelle (prev/next via URL), modal créer/éditer budget, suppression — `app/(dashboard)/budgets/page.tsx` · `components/budgets/budgets-list.tsx` · `components/budgets/budget-progress-card.tsx` · `components/budgets/budget-modal.tsx` · `app/api/budgets/*`
 > Phase 8 livrée : Polish — 4 loading skeletons (auto-Suspense App Router), page Paramètres (3 onglets) — `app/(dashboard)/*/loading.tsx` · `app/(dashboard)/settings/page.tsx` · `components/settings/settings-tabs.tsx`
+> Feature import multi-banque livrée : page `/import` wizard 3 étapes (sélection banque → upload CSV → résultats), route handler dynamique `/api/import/[format]`, config `IMPORT_FORMATS` avec flag `available` — `app/(dashboard)/import/page.tsx` · `app/api/import/[format]/route.ts` · `components/import/import-wizard.tsx` · `format-selector.tsx` · `file-upload-step.tsx` · `import-result-view.tsx`
 
 **Objectif** : Interface utilisateur complète connectée à l'API, utilisable par un beta-testeur.
 
@@ -29,6 +30,7 @@
 | ~~Étape 5~~ ✅ | Dashboard : KPI cards, Donut chart (Recharts), Top merchants, Recurring subscriptions — **Phase 4 livrée** |
 | ~~Étape 6~~ ✅ | Page Transactions : filtres, recherche, bulk-tag, export CSV — **Phase 6 livrée** |
 | ~~Étape 7~~ ✅ | Page Budgets : Progress bars par catégorie, badges d'alerte — **Phase 7 livrée** |
+| ~~Feature import multi-banque~~ ✅ | Page `/import` wizard 3 étapes : sélection banque, upload CSV, résultats par compte — **feature livrée** |
 
 ### Requirements P0
 
@@ -569,6 +571,15 @@ function DashboardSkeleton() {
 4. ✅ Empty states — Dashboard, Mes Comptes, Transactions, Budgets
 5. ✅ Page Paramètres — tabs profil/sécurité/à propos
 
+### Feature Import Multi-banque ✅ LIVRÉE
+1. ✅ Page `/import` — Server Component statique (pas de fetch)
+2. ✅ `import-wizard.tsx` — orchestrateur "use client", discriminated unions `WizardStep` + `UploadState`
+3. ✅ `format-selector.tsx` — grille banques avec flag `available` (aria-disabled pour les formats à venir)
+4. ✅ `file-upload-step.tsx` — dropzone drag-and-drop, `fileInputRef` reset après import
+5. ✅ `import-result-view.tsx` — tableau résultats par compte (créés / ignorés / erreurs)
+6. ✅ Route handler `/api/import/[format]/route.ts` — proxy dynamique vers `POST /api/v1/import/{format}`
+7. ✅ Sidebar : item "Importer" (icône Upload) + routeLabel TopBar
+
 ---
 
 ## 🎯 Checklist Finale
@@ -594,6 +605,7 @@ function DashboardSkeleton() {
 - [x] Mot de passe oublié (forgot-password)
 - [x] Réinitialisation de mot de passe (reset-password)
 - [x] Paramètres (profil, sécurité)
+- [x] Import multi-banque (wizard 3 étapes — Boursorama actif, BNP/CA/LCL/SG "bientôt disponible")
 
 ### Composants Réutilisables
 - [x] KPICard

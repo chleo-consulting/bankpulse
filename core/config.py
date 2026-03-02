@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     FRONTEND_URL: str = "http://localhost:3000"
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
+    SHARE_INVITATION_EXPIRE_DAYS: int = 7
 
 
 settings = Settings()

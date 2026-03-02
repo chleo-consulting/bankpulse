@@ -2,12 +2,18 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user
 from core.database import get_db
-from model.models import BankAccount, User
-from schemas.accounts import BankAccountCreate, BankAccountResponse, BankAccountUpdate
+from model.models import AccountShare, BankAccount, User
+from schemas.accounts import (
+    BankAccountCreate,
+    BankAccountListResponse,
+    BankAccountResponse,
+    BankAccountUpdate,
+)
 from schemas.import_ import ImportResult
 from services.import_service import ImportService
 
@@ -31,20 +37,70 @@ def _get_account_or_404(account_id: UUID, user: User, db: Session) -> BankAccoun
     return account
 
 
-@router.get("", response_model=list[BankAccountResponse])
+@router.get("", response_model=list[BankAccountListResponse])
 def list_accounts(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> list[BankAccount]:
-    """Liste les comptes bancaires non supprimés de l'utilisateur courant."""
-    return (
-        db.query(BankAccount)
-        .filter(
-            BankAccount.user_id == current_user.id,
-            BankAccount.deleted_at.is_(None),
+) -> list[BankAccountListResponse]:
+    """Liste les comptes propres + comptes partagés acceptés de l'utilisateur courant."""
+    # 1. Comptes propres
+    own_accounts = (
+        db.execute(
+            select(BankAccount).where(
+                BankAccount.user_id == current_user.id,
+                BankAccount.deleted_at.is_(None),
+            )
         )
+        .scalars()
         .all()
     )
+    own_responses = [
+        BankAccountListResponse(
+            id=a.id,
+            user_id=a.user_id,
+            account_name=a.account_name,
+            iban=a.iban,
+            account_type=a.account_type,
+            balance=a.balance,
+            created_at=a.created_at,
+            updated_at=a.updated_at,
+            is_shared=False,
+        )
+        for a in own_accounts
+    ]
+
+    # 2. Comptes partagés (accepted, non supprimés)
+    shared_rows = db.execute(
+        select(AccountShare, BankAccount, User)
+        .join(BankAccount, AccountShare.account_id == BankAccount.id)
+        .join(User, AccountShare.owner_id == User.id)
+        .where(
+            AccountShare.invitee_user_id == current_user.id,
+            AccountShare.status == "accepted",
+            BankAccount.deleted_at.is_(None),
+        )
+    ).all()
+
+    shared_responses = [
+        BankAccountListResponse(
+            id=account.id,
+            user_id=account.user_id,
+            account_name=account.account_name,
+            iban=account.iban,
+            account_type=account.account_type,
+            balance=account.balance,
+            created_at=account.created_at,
+            updated_at=account.updated_at,
+            is_shared=True,
+            shared_by_email=owner.email,
+            shared_by_name=(
+                f"{owner.first_name or ''} {owner.last_name or ''}".strip() or None
+            ),
+        )
+        for _, account, owner in shared_rows
+    ]
+
+    return own_responses + shared_responses
 
 
 @router.post("", response_model=BankAccountResponse, status_code=status.HTTP_201_CREATED)

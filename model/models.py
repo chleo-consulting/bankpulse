@@ -76,6 +76,10 @@ class BankAccount(Base):
 
     user: Mapped["User"] = relationship(back_populates="bank_accounts")
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="account")
+    shares: Mapped[list["AccountShare"]] = relationship(
+        foreign_keys="AccountShare.account_id",
+        back_populates="account",
+    )
 
 
 class Merchant(Base):
@@ -231,6 +235,45 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship()
+
+
+class AccountShare(Base):
+    __tablename__ = "account_shares"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending','accepted','rejected','revoked')",
+            name="ck_account_shares_status",
+        ),
+        Index("idx_account_shares_token_hash", "token_hash"),
+        Index("idx_account_shares_invitee_email", "invitee_email"),
+        Index("idx_account_shares_account_id", "account_id"),
+        Index("idx_account_shares_invitee_user_id", "invitee_user_id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey("bank_accounts.id", ondelete="CASCADE"), nullable=False
+    )
+    owner_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    invitee_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    invitee_user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    responded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    account: Mapped["BankAccount"] = relationship(
+        foreign_keys=[account_id], back_populates="shares"
+    )
+    owner: Mapped["User"] = relationship(foreign_keys=[owner_id])
+    invitee: Mapped[Optional["User"]] = relationship(foreign_keys=[invitee_user_id])
 
 
 class AuditLog(Base):

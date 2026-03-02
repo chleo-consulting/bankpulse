@@ -1,6 +1,6 @@
 # PRD — BankPulse Phase 1 MVP : Étapes de développement **backend**
 
-**Statut** : MVP Phase 1 livré + feature reset-password | **Date** : 27 février 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
+**Statut** : MVP Phase 1 livré + feature reset-password + feature import-multibank + feature partage-comptes | **Date** : 2 mars 2026 | **Stack** : FastAPI · SQLAlchemy 2.0 · PostgreSQL 16 · Next.js 16 · shadcn/ui v3 · Tailwind v4 · Bun
 
 ---
 
@@ -69,7 +69,7 @@ Les utilisateurs (Young Professionals, Power Users, Freelances) n'ont aucun moye
 
 ### Étape 2 — Authentification (Auth API) ✅ LIVRÉE
 
-> Coverage : 97.80% (199 tests) | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout` · `/auth/forgot-password` · `/auth/reset-password` | Migration : `11ad90472e66_add_password_reset_tokens`
+> Coverage : 97.97% (249 tests) | Endpoints : `/auth/register` · `/auth/login` · `/auth/refresh` · `/auth/logout` · `/auth/forgot-password` · `/auth/reset-password` | Migration : `11ad90472e66_add_password_reset_tokens`
 
 **Objectif** : Un utilisateur peut s'inscrire, se connecter, et ses requêtes sont sécurisées par JWT.
 
@@ -291,6 +291,72 @@ Service email : `services/email_service.py` — `EmailService.send_password_rese
 
 - Notification email lors du dépassement
 - Budget reporté sur plusieurs mois (rollover)
+
+---
+
+---
+
+### Feature Import Multi-banque ✅ LIVRÉE
+
+> Coverage : 97.97% (249 tests) | Endpoints backend : `POST /import/boursorama` (existant, réutilisé) | Frontend : page `/import` wizard 3 étapes
+
+**Objectif** : L'utilisateur peut importer un CSV depuis une page dédiée, avec sélection de la banque et progression visuelle.
+
+#### User Stories
+
+- En tant qu'utilisateur, je veux sélectionner ma banque puis importer mon CSV depuis une page dédiée pour une expérience guidée.
+- En tant qu'utilisateur, je veux voir le résultat de l'import par compte (créés / ignorés / erreurs) pour vérifier l'intégrité.
+
+#### Requirements P0
+
+| Req | Description | Critères d'acceptation |
+|-----|-------------|------------------------|
+| RF1.1 | Page `/import` avec wizard 3 étapes | Étape 1 : sélection banque · Étape 2 : upload CSV · Étape 3 : résultats |
+| RF1.2 | Route handler dynamique `/api/import/[format]` | Proxy vers `POST /api/v1/import/{format}` |
+| RF1.3 | Config `IMPORT_FORMATS` avec flag `available` | Boursorama actif ; BNP/CA/LCL/SG en "Bientôt disponible" |
+| RF1.4 | Dropzone drag-and-drop + reset après import | `fileInputRef.current.value = ""` pour permettre réimport |
+
+#### Composants frontend
+
+`app/(dashboard)/import/page.tsx` · `app/api/import/[format]/route.ts` · `components/import/import-wizard.tsx` · `components/import/format-selector.tsx` · `components/import/file-upload-step.tsx` · `components/import/import-result-view.tsx`
+
+---
+
+### Feature Partage de Comptes ✅ LIVRÉE
+
+> Coverage : 97.97% (249 tests) | Migration : `a1b2c3d4e5f6_add_account_shares`
+
+**Objectif** : Un utilisateur peut partager un ou plusieurs de ses comptes avec un autre utilisateur. L'invité accepte ou refuse compte par compte. Une fois accepté, le compte apparaît dans la liste des deux utilisateurs.
+
+#### User Stories
+
+- En tant qu'utilisateur, je veux inviter un autre utilisateur (par email) à accéder à un de mes comptes pour lui partager ma situation financière.
+- En tant qu'invité, je veux accepter ou refuser chaque invitation séparément pour garder le contrôle de mes accès.
+- En tant qu'utilisateur, je veux voir les comptes partagés avec moi dans ma liste de comptes pour les analyser comme les miens.
+- En tant que propriétaire, je veux pouvoir révoquer un partage à tout moment pour retirer un accès accordé.
+
+#### Requirements P0
+
+| Req | Description | Critères d'acceptation |
+|-----|-------------|------------------------|
+| RS1.1 | `POST /accounts/{id}/invite` — invitation par email | 201 ; email envoyé via Resend ; 409 si doublon pending ; 400 si auto-invitation |
+| RS1.2 | `GET /accounts/{id}/shares` — liste des partages | Filtre status IN ('pending','accepted') ; propriétaire uniquement |
+| RS1.3 | `DELETE /accounts/{id}/shares/{sid}` — révocation | 204 ; status = 'revoked' |
+| RS1.4 | `GET /invitations` — invitations reçues | Filtre par invitee_user_id OU invitee_email (match avant inscription) ; exclut expirées |
+| RS1.5 | `POST /invitations/accept/{token}` — accepter via lien email | Sans auth ; résout invitee_user_id si user existe |
+| RS1.6 | `POST /invitations/{id}/accept` — accepter via UI | Auth requise ; 403 si mauvais email |
+| RS1.7 | `POST /invitations/{id}/reject` — refuser | Auth requise |
+| RS1.8 | `GET /accounts` inclut les comptes partagés acceptés | `is_shared: true`, `shared_by_email`, `shared_by_name` dans `BankAccountListResponse` |
+
+#### Table créée
+
+`account_shares` — champs : `id`, `account_id` (FK → bank_accounts CASCADE), `owner_id` (FK → users CASCADE), `invitee_email` (String 255), `invitee_user_id` (FK → users SET NULL, nullable), `status` ('pending'|'accepted'|'rejected'|'revoked'), `token_hash` (SHA-256, unique), `expires_at`, `responded_at` (nullable), `created_at`
+
+Index : token_hash, invitee_email, account_id, invitee_user_id + index partiel PostgreSQL `unique pending` sur (account_id, invitee_email)
+
+Setting ajouté : `SHARE_INVITATION_EXPIRE_DAYS = 7` dans `core/config.py`
+
+Service email : `EmailService.send_account_share_invitation()` — lien `FRONTEND_URL/invitations/{token}`
 
 ---
 

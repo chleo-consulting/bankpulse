@@ -115,6 +115,12 @@ Infra: Docker + CI/CD (pas de stockage fichier — CSV parsé en mémoire)
 -   Je veux classer les transactions par catégorie
 -   Je veux tagger plusieurs transactions en masse.
 
+### Partage de Comptes
+
+-   En tant qu'utilisateur, je veux inviter un autre utilisateur à accéder à un de mes comptes pour partager ma situation financière.
+-   En tant qu'invité, je veux accepter ou refuser chaque invitation séparément pour garder le contrôle.
+-   En tant que propriétaire, je veux révoquer un partage à tout moment.
+
 ### Insights
 
 -   Je veux recevoir des recommandations automatiques.

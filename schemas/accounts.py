@@ -30,3 +30,13 @@ class BankAccountResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class BankAccountListResponse(BankAccountResponse):
+    """Réponse étendue pour GET /accounts — inclut les informations de partage."""
+
+    is_shared: bool = False
+    shared_by_email: str | None = None
+    shared_by_name: str | None = None
+
+    model_config = {"from_attributes": False}

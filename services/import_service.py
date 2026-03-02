@@ -1,8 +1,11 @@
+import dataclasses
+import hashlib
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from model.models import AuditLog, BankAccount, Merchant, Transaction
+from parsers.base import ParsedTransaction
 from parsers.boursorama import BoursoramaCsvParser
 from schemas.import_ import AccountImportSummary, ImportResult, SkippedTransaction
 from services.categorization_service import CategorizationService
@@ -44,7 +47,8 @@ class ImportService:
             nb_errors = 0
             skipped: list[SkippedTransaction] = []
 
-            for txn in parsed_account.transactions:
+            transactions = self._deduplicate_intra_file(parsed_account.transactions)
+            for txn in transactions:
                 existing = (
                     self.db.query(Transaction)
                     .filter(Transaction.import_hash == txn.import_hash)
@@ -152,7 +156,8 @@ class ImportService:
             nb_created, nb_skipped, nb_errors = 0, 0, 0
             skipped: list[SkippedTransaction] = []
 
-            for txn in parsed_account.transactions:
+            transactions = self._deduplicate_intra_file(parsed_account.transactions)
+            for txn in transactions:
                 existing = (
                     self.db.query(Transaction)
                     .filter(Transaction.import_hash == txn.import_hash)
@@ -236,6 +241,37 @@ class ImportService:
             total_skipped=total_skipped,
             total_errors=total_errors,
         )
+
+    @staticmethod
+    def _deduplicate_intra_file(
+        transactions: list[ParsedTransaction],
+    ) -> list[ParsedTransaction]:
+        """Détecte les doublons intra-fichier (même import_hash) et rend chaque transaction unique
+        en suffixant le libellé.
+
+        1ère occurrence : inchangée.
+        2ème occurrence : description + " 1", hash recalculé.
+        3ème occurrence : description + " 2", etc.
+        """
+        seen: dict[str, int] = {}  # original_hash → nb d'occurrences déjà traitées
+        result: list[ParsedTransaction] = []
+        for txn in transactions:
+            key = txn.import_hash
+            if key not in seen:
+                seen[key] = 0
+                result.append(txn)
+            else:
+                seen[key] += 1
+                count = seen[key]
+                new_description = f"{txn.description} {count}"
+                new_hash = hashlib.sha256(
+                    f"{txn.transaction_date.isoformat()}|{txn.account_num}"
+                    f"|{txn.amount}|{new_description}".encode()
+                ).hexdigest()
+                result.append(
+                    dataclasses.replace(txn, description=new_description, import_hash=new_hash)
+                )
+        return result
 
     def _upsert_merchant(self, normalized_name: str) -> Merchant:
         merchant = (

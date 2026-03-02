@@ -7,6 +7,14 @@ from core.security import create_access_token
 from model.models import BankAccount, Transaction, User
 
 # CSV de test minimal (nouveau format : séparateur ";", montants français)
+# CSV avec deux transactions strictement identiques (même date, compte, montant, libellé)
+DUPLICATE_CSV = b"""\
+dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
+2025-05-26;2025-05-26;VIR SEPA LOYER;Logement;Logement;bailleur;-800,00;;DUP_ACC001;Compte courant;1000.00
+2025-05-26;2025-05-26;VIR SEPA LOYER;Logement;Logement;bailleur;-800,00;;DUP_ACC001;Compte courant;1000.00
+2025-05-26;2025-05-26;CARTE Supermarche;Alimentation;Vie quotidienne;super;-45,00;;DUP_ACC001;Compte courant;1000.00
+"""
+
 SIMPLE_CSV = b"""\
 dateOp;dateVal;label;category;categoryParent;supplierFound;amount;comment;accountNum;accountLabel;accountbalance
 2025-01-15;2025-01-15;CARTE Amazon;Achats;Shopping;amazon;-29,99;;IMPORT_ACC001;Test Import;1500.00
@@ -155,3 +163,52 @@ class TestImportBoursoramaEndpoint:
         for txn in transactions:
             assert txn.import_hash is not None
             assert len(txn.import_hash) == 64
+
+    def test_intrafile_duplicates_are_all_created(
+        self, client: TestClient, auth_headers: dict, db_session
+    ) -> None:
+        """Deux transactions identiques dans le même CSV doivent être toutes deux importées."""
+        response = client.post(
+            "/api/v1/import/boursorama",
+            files={"file": ("dup.csv", io.BytesIO(DUPLICATE_CSV), "text/csv")},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        # 2 transactions identiques + 1 unique = 3 créées, 0 ignorées
+        assert data["total_created"] == 3
+        assert data["total_skipped"] == 0
+        # Vérification en base : 3 transactions avec des hashs distincts
+        transactions = (
+            db_session.query(Transaction)
+            .join(Transaction.account)
+            .filter(Transaction.account.has(iban="DUP_ACC001"))
+            .all()
+        )
+        assert len(transactions) == 3
+        hashes = {txn.import_hash for txn in transactions}
+        assert len(hashes) == 3  # tous les hashs sont distincts
+        # La 2ème occurrence doit avoir le libellé suffixé
+        descriptions = sorted(txn.description for txn in transactions)
+        assert "VIR SEPA LOYER" in descriptions
+        assert "VIR SEPA LOYER 1" in descriptions
+
+    def test_intrafile_duplicates_reimport_skips_all(
+        self, client: TestClient, auth_headers: dict
+    ) -> None:
+        """Ré-importer le même CSV avec doublons intra-fichier doit tout ignorer."""
+        # 1er import
+        client.post(
+            "/api/v1/import/boursorama",
+            files={"file": ("dup.csv", io.BytesIO(DUPLICATE_CSV), "text/csv")},
+            headers=auth_headers,
+        )
+        # 2e import du même fichier
+        response = client.post(
+            "/api/v1/import/boursorama",
+            files={"file": ("dup.csv", io.BytesIO(DUPLICATE_CSV), "text/csv")},
+            headers=auth_headers,
+        )
+        data = response.json()
+        assert data["total_created"] == 0
+        assert data["total_skipped"] == 3

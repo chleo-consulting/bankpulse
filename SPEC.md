@@ -53,6 +53,9 @@ intelligents - Expérience moderne et minimaliste
 -   Bulk edit
 -   Export CSV
 -   Import CSV Boursorama (multi-comptes, auto-détection, déduplication via `import_hash`)
+-   Déduplication intra-fichier : si plusieurs transactions du même fichier partagent le même hash
+    (date + compte + montant + libellé identiques), les occurrences suivantes reçoivent un suffixe
+    numérique sur le libellé (`" 1"`, `" 2"`…) afin d'être importées comme transactions distinctes.
 
 ## Différenciation
 

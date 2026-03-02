@@ -21,11 +21,15 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Ajout de import_hash (SHA-256 de déduplication) sur la table transactions."""
-    op.add_column("transactions", sa.Column("import_hash", sa.String(64), nullable=True))
+    op.add_column(
+        "transactions",
+        sa.Column("import_hash", sa.String(64), nullable=True),
+        if_not_exists=True,
+    )
     op.create_unique_constraint("uq_transactions_import_hash", "transactions", ["import_hash"])
 
 
 def downgrade() -> None:
     """Suppression de import_hash."""
     op.drop_constraint("uq_transactions_import_hash", "transactions", type_="unique")
-    op.drop_column("transactions", "import_hash")
+    op.drop_column("transactions", "import_hash", if_exists=True)

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bankpulse
+          POSTGRES_PASSWORD: bankpulse
+          POSTGRES_DB: bankpulse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://bankpulse:bankpulse@localhost:5432/bankpulse
+      DATABASE_TEST_URL: postgresql://bankpulse:bankpulse@localhost:5432/bankpulse_test
+      SECRET_KEY: ci-secret-key-not-used-in-production
+      RESEND_API_KEY: re_fake_key_ci
+      FRONTEND_URL: http://localhost:3000
+      PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Créer la base de données de test
+        run: |
+          PGPASSWORD=bankpulse psql -h localhost -U bankpulse -c "CREATE DATABASE bankpulse_test;"
+
+      - name: Installer uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: uv sync
+
+      - name: Linting (ruff)
+        run: uv run ruff check .
+
+      - name: Formatage (black)
+        run: uv run black --check .
+
+      - name: Appliquer les migrations
+        run: uv run alembic upgrade head
+
+      - name: Vérifier que la DB est à la dernière révision
+        run: uv run alembic current --check-heads
+
+      - name: Tests
+        run: uv run pytest --tb=short

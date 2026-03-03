@@ -35,3 +35,7 @@ venv.bak/
 
 # Import csv files 
 import/csv/
+
+# Fichiers user
+scripts/output/*.json
+scripts/output/*.csv

@@ -111,9 +111,7 @@ def validate_columns(fieldnames: list[str] | None, filepath: str) -> None:
         raise ValueError(f"{filepath}: colonnes manquantes {missing}")
 
 
-def parse_csv_file(
-    filepath: Path, include_uncategorized: bool
-) -> list[dict]:
+def parse_csv_file(filepath: Path, include_uncategorized: bool) -> list[dict]:
     text = _decode_content(filepath.read_bytes())
 
     reader = csv.DictReader(io.StringIO(text), delimiter=";")
@@ -160,7 +158,9 @@ def deduplicate(rows: list[dict]) -> list[dict]:
     seen: dict[tuple, dict] = {}
 
     for row in rows:
-        dedup_key = row["supplier_found"].lower() if row["supplier_found"] else row["cleaned_label"].lower()
+        dedup_key = (
+            row["supplier_found"].lower() if row["supplier_found"] else row["cleaned_label"].lower()
+        )
         key = (row["category"], row["category_parent"], dedup_key)
         if key not in seen:
             seen[key] = {
@@ -240,9 +240,7 @@ def main() -> None:
             e["cleaned_label"].lower(),
         )
     )
-    print(
-        f"[extract_labels] {len(all_rows)} lignes → {len(unique_entries)} entrées uniques"
-    )
+    print(f"[extract_labels] {len(all_rows)} lignes → {len(unique_entries)} entrées uniques")
 
     # Construction de la sortie
     now = datetime.now()

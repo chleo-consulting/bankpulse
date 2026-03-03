@@ -200,9 +200,7 @@ def main() -> None:
 
     rules: list[dict] = []
     for bp_category in sorted(groups):
-        rule = generate_rule(
-            bp_category, groups[bp_category], args.match_field, args.priority
-        )
+        rule = generate_rule(bp_category, groups[bp_category], args.match_field, args.priority)
         rules.append(rule)
         for w in rule["warnings"]:
             print(f"  AVERTISSEMENT [{bp_category}]: {w}")

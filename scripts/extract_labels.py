@@ -75,14 +75,13 @@ BANKPULSE_CATEGORIES_REFERENCE: dict = {
 }
 
 
-def detect_encoding(raw: bytes) -> str:
+def _decode_content(raw: bytes) -> str:
     for encoding in ("utf-8-sig", "utf-8", "latin-1"):
         try:
-            raw.decode(encoding)
-            return encoding
+            return raw.decode(encoding)
         except UnicodeDecodeError:
             continue
-    return "latin-1"
+    return raw.decode("latin-1", errors="replace")
 
 
 def extract_raw_label(label_field: str) -> str:
@@ -115,9 +114,7 @@ def validate_columns(fieldnames: list[str] | None, filepath: str) -> None:
 def parse_csv_file(
     filepath: Path, include_uncategorized: bool
 ) -> list[dict]:
-    raw = filepath.read_bytes()
-    encoding = detect_encoding(raw)
-    text = raw.decode(encoding, errors="replace")
+    text = _decode_content(filepath.read_bytes())
 
     reader = csv.DictReader(io.StringIO(text), delimiter=";")
     validate_columns(reader.fieldnames, str(filepath))
@@ -143,7 +140,6 @@ def parse_csv_file(
             continue
 
         cleaned, patterns_applied = clean_label(raw_label)
-        dedup_key = supplier.lower() if supplier else cleaned.lower()
 
         rows.append(
             {
@@ -153,7 +149,6 @@ def parse_csv_file(
                 "supplier_found": supplier,
                 "category": category,
                 "category_parent": category_parent,
-                "dedup_key": dedup_key,
             }
         )
 
@@ -161,11 +156,12 @@ def parse_csv_file(
 
 
 def deduplicate(rows: list[dict]) -> list[dict]:
-    """Déduplique par (category, category_parent, dedup_key), agrège occurrence_count."""
+    """Déduplique par (category, category_parent, supplier/cleaned_label), agrège occurrence_count."""
     seen: dict[tuple, dict] = {}
 
     for row in rows:
-        key = (row["category"], row["category_parent"], row["dedup_key"])
+        dedup_key = row["supplier_found"].lower() if row["supplier_found"] else row["cleaned_label"].lower()
+        key = (row["category"], row["category_parent"], dedup_key)
         if key not in seen:
             seen[key] = {
                 "category": row["category"],
@@ -249,9 +245,10 @@ def main() -> None:
     )
 
     # Construction de la sortie
+    now = datetime.now()
     output = {
         "metadata": {
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now.isoformat(),
             "script_version": "1.0.0",
             "source_files": source_files,
             "total_rows_processed": len(all_rows),
@@ -269,7 +266,7 @@ def main() -> None:
 
     # Chemin de sortie
     if args.output is None:
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ts = now.strftime("%Y%m%d_%H%M%S")
         out_path = Path(__file__).parent / "output" / f"labels_{ts}.json"
     else:
         out_path = args.output

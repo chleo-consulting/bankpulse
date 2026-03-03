@@ -50,13 +50,9 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=COLUMNS, extrasaction="ignore")
         writer.writeheader()
         for entry in entries:
-            row = dict(entry)
-            # Aplatir raw_label_examples (liste → chaîne séparée par " | ")
-            examples = row.get("raw_label_examples") or []
-            row["raw_label_examples"] = " | ".join(examples)
-            # Aplatir patterns_applied (liste → chaîne séparée par " | ")
-            patterns_applied = row.get("patterns_applied") or []
-            row["patterns_applied"] = " | ".join(patterns_applied)
+            row = {k: entry.get(k, "") for k in COLUMNS}
+            row["raw_label_examples"] = " | ".join(entry.get("raw_label_examples") or [])
+            row["patterns_applied"] = " | ".join(entry.get("patterns_applied") or [])
             writer.writerow(row)
 
     print(f"[json_to_csv] {len(entries)} entrées écrites dans {out_path}")

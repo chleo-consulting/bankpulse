@@ -18,6 +18,9 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
+
+MatchField = Literal["supplier", "cleaned_label", "both"]
 
 # ── UUIDs des catégories BankPulse (depuis la migration c7d8e3f1a234) ────────
 BANKPULSE_CATEGORY_UUIDS: dict[str, str] = {
@@ -58,25 +61,10 @@ def load_validated_json(path: Path) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
     if "entries" not in data:
         raise ValueError(f"JSON invalide : clé 'entries' manquante dans {path}")
-
-    filled = sum(
-        1
-        for e in data["entries"]
-        if e.get("suggested_bankpulse_category") is not None and not e.get("skip", False)
-    )
-    total = len(data["entries"])
-    if filled == 0:
-        print(
-            "AVERTISSEMENT: aucune entrée avec 'suggested_bankpulse_category' rempli. "
-            "Rien à générer."
-        )
-    else:
-        print(f"[generate_rules] {filled}/{total} entrées avec catégorie BankPulse remplie")
-
     return data
 
 
-def build_token(entry: dict, match_field: str) -> str | None:
+def build_token(entry: dict, match_field: MatchField) -> str | None:
     """Retourne le token regex échappé pour une entrée."""
     supplier = (entry.get("supplier_found") or "").strip()
     cleaned = (entry.get("cleaned_label") or "").strip()
@@ -108,7 +96,7 @@ def group_by_bankpulse_category(entries: list[dict]) -> dict[str, list[dict]]:
 def generate_rule(
     bp_category: str,
     entries: list[dict],
-    match_field: str,
+    match_field: MatchField,
     priority: int,
 ) -> dict:
     tokens: list[str] = []
@@ -196,6 +184,17 @@ def main() -> None:
     entries = data["entries"]
 
     groups = group_by_bankpulse_category(entries)
+    filled = sum(len(v) for v in groups.values())
+    total = len(entries)
+    skipped = total - filled
+    if filled == 0:
+        print(
+            "AVERTISSEMENT: aucune entrée avec 'suggested_bankpulse_category' rempli. "
+            "Rien à générer."
+        )
+    else:
+        print(f"[generate_rules] {filled}/{total} entrées avec catégorie BankPulse remplie")
+
     if not groups:
         sys.exit("Aucune catégorie BankPulse remplie. Rien à générer.")
 
@@ -208,15 +207,10 @@ def main() -> None:
         for w in rule["warnings"]:
             print(f"  AVERTISSEMENT [{bp_category}]: {w}")
 
-    skipped = sum(
-        1
-        for e in entries
-        if e.get("suggested_bankpulse_category") is None or e.get("skip", False)
-    )
-
+    now = datetime.now()
     output = {
         "metadata": {
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now.isoformat(),
             "script_version": "1.0.0",
             "source_file": str(args.validated_json),
             "total_rules_generated": len(rules),
@@ -236,7 +230,7 @@ def main() -> None:
     }
 
     if args.output is None:
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ts = now.strftime("%Y%m%d_%H%M%S")
         out_path = Path(__file__).parent / "output" / f"rules_{ts}.json"
     else:
         out_path = args.output

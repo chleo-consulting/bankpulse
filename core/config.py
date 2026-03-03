@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://bankpulse:bankpulse@localhost:5432/bankpulse"
     DATABASE_TEST_URL: str = "postgresql://bankpulse:bankpulse@localhost:5433/bankpulse_test"
     SECRET_KEY: str = "change-me-generate-a-real-secret-key"
-    APP_NAME: str = "BankPulse Engine"
+    APP_NAME: str = "BankPulse Platform"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
 

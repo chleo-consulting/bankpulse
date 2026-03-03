@@ -1,4 +1,4 @@
-# BankPulse Engine
+# BankPulse Platform
 
 SaaS d'analyse financière personnelle — FastAPI + SQLAlchemy 2.0 + PostgreSQL + Next.js 16.
 

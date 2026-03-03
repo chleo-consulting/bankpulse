@@ -48,7 +48,7 @@ wheels = [
 ]
 
 [[package]]
-name = "bankpulse-engine"
+name = "bankpulse-platform"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

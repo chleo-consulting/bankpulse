@@ -10,7 +10,7 @@ docker compose exec db psql -U bankpulse -d bankpulse -c "TRUNCATE TABLE transac
 
 ```bash
 docker compose down db
-docker volume rm bankpulse-engine_postgres_data
+docker volume rm bankpulse-platform_postgres_data
 docker compose up -d db
 uv run alembic upgrade head
 ```
